@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema(
 	{
@@ -44,7 +45,8 @@ const userSchema = new mongoose.Schema(
 		canAddLc: { type: Boolean, default: false },
 		canAddExtension: { type: Boolean, default: false },
 		canAddAmendement: { type: Boolean, default: false },
-		status: { type: String, enum: ['active', 'archive'], default: 'active' }
+		status: { type: String, enum: ['active', 'archive'], default: 'active' },
+		tokens: [{ token: { type: String, required: true } }]
 	},
 	{ timestamps: true }
 );
@@ -58,6 +60,16 @@ userSchema.pre('save', async function(next) {
 
 	next();
 });
+
+// Genrete User Auth Tokens
+userSchema.methods.generateAuthToken = async function() {
+	const user = this;
+	const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
+	user.tokens = user.tokens.concat({ token });
+	await user.save({ validateBeforeSave: false });
+
+	return token;
+};
 
 const User = mongoose.model('User', userSchema);
 

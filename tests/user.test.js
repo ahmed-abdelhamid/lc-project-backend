@@ -6,7 +6,7 @@ const { setupDatabase } = require('./fixtures/db');
 beforeEach(setupDatabase);
 
 test('Should signup new user', async () => {
-	const response = await request(app)
+	const { body } = await request(app)
 		.post('/users')
 		.send({
 			name: 'Ahmed Abdelhamid',
@@ -15,14 +15,17 @@ test('Should signup new user', async () => {
 			phone: '0562442190'
 		})
 		.expect(201);
-	const user = await User.findById(response.body._id);
-	// Check that user really created
+	const user = await User.findById(body.user._id);
+	// Check that user saved in database
 	expect(user).not.toBeNull();
-	// Check some default values
-	expect(user).toMatchObject({
-		status: 'active',
-		canAddRequest: false,
-		password: expect.not.stringContaining('Ahmed123')
+	// Check response
+	expect(body).toMatchObject({
+		user: {
+			status: 'active',
+			canAddRequest: false,
+			password: expect.not.stringContaining('Ahmed123')
+		},
+		token: user.tokens[0].token
 	});
 });
 
