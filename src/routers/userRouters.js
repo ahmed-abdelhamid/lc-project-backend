@@ -3,8 +3,8 @@ const User = require('../models/userModel');
 const router = new express.Router();
 
 // Signup new user
-router.post('/users', async (req, res) => {
-	const user = new User(req.body);
+router.post('/users', async ({ body }, res) => {
+	const user = new User(body);
 
 	try {
 		await user.save();

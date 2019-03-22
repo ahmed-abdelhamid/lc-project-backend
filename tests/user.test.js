@@ -16,8 +16,14 @@ test('Should signup new user', async () => {
 		})
 		.expect(201);
 	const user = await User.findById(response.body._id);
+	// Check that user really created
 	expect(user).not.toBeNull();
-	expect(user.canRequest).toBeFalsy();
+	// Check some default values
+	expect(user).toMatchObject({
+		status: 'active',
+		canAddRequest: false,
+		password: expect.not.stringContaining('Ahmed123')
+	});
 });
 
 test('Shouldn\'t signup new user with invalid name', async () => {
@@ -61,6 +67,18 @@ test('Shouldn\'t signup new user with invalid phone number', async () => {
 			email: 'ahmed@example.com',
 			password: 'Ahmed123',
 			phone: '0123456789'
+		})
+		.expect(400);
+});
+
+test('Shouldn\'t signup new user with invalid status value', async () => {
+	await request(app)
+		.post('/users')
+		.send({
+			name: 'Ahmed Abdelhamid',
+			email: 'ahmed@example.com',
+			password: 'Ahmed123',
+			status: 'Invalid Value'
 		})
 		.expect(400);
 });

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema(
 	{
@@ -42,10 +43,21 @@ const userSchema = new mongoose.Schema(
 		canAddPayment: { type: Boolean, default: false },
 		canAddLc: { type: Boolean, default: false },
 		canAddExtension: { type: Boolean, default: false },
-		canAddAmendement: { type: Boolean, default: false }
+		canAddAmendement: { type: Boolean, default: false },
+		status: { type: String, enum: ['active', 'archive'], default: 'active' }
 	},
 	{ timestamps: true }
 );
+
+// Hash the password before saving on the database
+userSchema.pre('save', async function(next) {
+	const user = this;
+	if (user.isModified('password')) {
+		user.password = await bcrypt.hash(user.password, 8);
+	}
+
+	next();
+});
 
 const User = mongoose.model('User', userSchema);
 
