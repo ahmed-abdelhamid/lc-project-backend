@@ -2,6 +2,7 @@ const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/models/userModel');
 const {
+	admin,
 	activeUserOneId,
 	activeUserOne,
 	archivedUserOne,
@@ -31,10 +32,12 @@ test('Should signup new user', async () => {
 		user: {
 			status: 'active',
 			canAddRequest: false,
-			password: expect.not.stringContaining('Ahmed123')
+			auth: 'user'
 		},
 		token: user.tokens[0].token
 	});
+	// Check password
+	expect(user.password).not.toEqual('Ahmed123');
 });
 
 test('Shouldn\'t signup new user with invalid name', async () => {
@@ -97,12 +100,28 @@ test('Shouldn\'t signup new user with invalid status value', async () => {
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED FINDING USERS /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should find all users', async () => {
+test('Should fecth all users', async () => {
 	const { body } = await request(app)
 		.get('/users')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(2);
+	expect(body).toHaveLength(3);
+});
+
+test('Shouldn\'t fecth all users if not admin', async () => {
+	await request(app)
+		.get('/users')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(401);
+});
+
+test('Shouldn\'t fecth all users if not authenticated', async () => {
+	await request(app)
+		.get('/users')
+		.send()
+		.expect(401);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,7 +136,7 @@ test('Should login user', async () => {
 	const { tokens } = await User.findById(activeUserOneId);
 	expect(body).toMatchObject({
 		user: { name: activeUserOne.name },
-		token: tokens[0].token
+		token: tokens[1].token
 	});
 });
 
@@ -143,4 +162,30 @@ test('Shouldn\'t login archived user', async () => {
 		.post('/users/login')
 		.send({ email, password })
 		.expect(400);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////  TESTS RELATED LOGOUT USERS //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should logout user', async () => {
+	await request(app)
+		.post('/users/logout')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+});
+
+test('Should logout admin', async () => {
+	await request(app)
+		.post('/users/logout')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(200);
+});
+
+test('Shouldn\'t logout not autheticated user', async () => {
+	await request(app)
+		.post('/users/logout')
+		.send()
+		.expect(401);
 });

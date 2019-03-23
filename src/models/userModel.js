@@ -46,10 +46,22 @@ const userSchema = new mongoose.Schema(
 		canAddExtension: { type: Boolean, default: false },
 		canAddAmendement: { type: Boolean, default: false },
 		status: { type: String, enum: ['active', 'archive'], default: 'active' },
+		auth: { type: String, enum: ['admin', 'user'], default: 'user' },
 		tokens: [{ token: { type: String, required: true } }]
 	},
 	{ timestamps: true }
 );
+
+// Hide Sensitive Data
+userSchema.methods.toJSON = function() {
+	const user = this;
+	const userObject = user.toObject();
+
+	delete userObject.password;
+	delete userObject.tokens;
+
+	return userObject;
+};
 
 // Hash the password before saving on the database
 userSchema.pre('save', async function(next) {
