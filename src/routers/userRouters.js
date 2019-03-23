@@ -15,6 +15,15 @@ router.post('/users', async ({ body }, res) => {
 	}
 });
 
+// Get all users
+router.get('/users', async (req, res) => {
+	const users = await User.find();
+	if (!users) {
+		return res.status(404).send();
+	}
+	res.send(users);
+});
+
 // Login existing user
 router.post('/users/login', async (req, res) => {
 	try {
