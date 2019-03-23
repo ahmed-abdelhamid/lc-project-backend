@@ -1,7 +1,12 @@
 const request = require('supertest');
 const app = require('../src/app');
 const User = require('../src/models/userModel');
-const { setupDatabase } = require('./fixtures/db');
+const {
+	activeUserOneId,
+	activeUserOne,
+	archivedUserOne,
+	setupDatabase
+} = require('./fixtures/db');
 
 beforeEach(setupDatabase);
 
@@ -86,5 +91,45 @@ test('Shouldn\'t signup new user with invalid status value', async () => {
 			password: 'Ahmed123',
 			status: 'Invalid Value'
 		})
+		.expect(400);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should login user', async () => {
+	const { email, password } = activeUserOne;
+	const { body } = await request(app)
+		.post('/users/login')
+		.send({ email, password })
+		.expect(200);
+	const { tokens } = await User.findById(activeUserOneId);
+	expect(body).toMatchObject({
+		user: { name: activeUserOne.name },
+		token: tokens[0].token
+	});
+});
+
+test('Shouldn\'t login active user with wrong email', async () => {
+	const { password } = archivedUserOne;
+	await request(app)
+		.post('/users/login')
+		.send({ email: 'email@example.com', password })
+		.expect(400);
+});
+
+test('Shouldn\'t login active user with wrong password', async () => {
+	const { email } = archivedUserOne;
+	await request(app)
+		.post('/users/login')
+		.send({ email, password: 'WrongPassword' })
+		.expect(400);
+});
+
+test('Shouldn\'t login archived user', async () => {
+	const { email, password } = archivedUserOne;
+	await request(app)
+		.post('/users/login')
+		.send({ email, password })
 		.expect(400);
 });

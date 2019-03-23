@@ -15,4 +15,16 @@ router.post('/users', async ({ body }, res) => {
 	}
 });
 
+// Login existing user
+router.post('/users/login', async (req, res) => {
+	try {
+		const { email, password } = req.body;
+		const user = await User.findByCredentials(email, password);
+		const token = await user.generateAuthToken();
+		res.send({ user, token });
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
+
 module.exports = router;
