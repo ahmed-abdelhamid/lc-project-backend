@@ -63,7 +63,6 @@ router.patch('/users/me', auth(), async ({ user, body }, res) => {
 
 // Update user by ID (ADMIN ONLY)
 router.patch('/users/:id', auth('admin'), async ({ params, body }, res) => {
-	let user;
 	const _id = params.id;
 	const updates = Object.keys(body);
 	const allowedUpdates = [
@@ -83,19 +82,17 @@ router.patch('/users/:id', auth('admin'), async ({ params, body }, res) => {
 		return res.status(400).send({ error: 'Invalid Updates' });
 	}
 	try {
-		user = await User.findById(_id);
-	} catch (e) {
-		return res.status(404).send(e);
-	}
-
-	try {
-		updates.forEach(update => (user[update] = body[update]));
-		await user.save();
+		const user = await User.findByIdAndUpdate(_id, body, {
+			new: true,
+			runValidators: true
+		});
 		res.send(user);
 	} catch (e) {
 		res.status(400).send(e);
 	}
 });
+
+//
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

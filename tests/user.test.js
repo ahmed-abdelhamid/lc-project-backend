@@ -215,19 +215,6 @@ test('Should n\'t update user if not authenticated', async () => {
 	});
 });
 
-test('Should n\'t update user if existing email', async () => {
-	await request(app)
-		.patch('/users/me')
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send({
-			name: 'Smith',
-			email: archivedUserOne.email
-		})
-		.expect(400);
-	const user = await User.findById(activeUserOneId);
-	expect(user.email).toEqual(activeUserOne.email);
-});
-
 test('Should n\'t update user if invalid update', async () => {
 	await request(app)
 		.patch('/users/me')
@@ -240,17 +227,6 @@ test('Should n\'t update user if invalid update', async () => {
 	const user = await User.findById(activeUserOneId);
 	expect(user.name).toEqual(activeUserOne.name);
 	expect(user.canAddRequest).toBeFalsy();
-});
-
-test('Should n\'t update user if invalid password', async () => {
-	await request(app)
-		.patch('/users/me')
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send({ password: 'Smith' })
-		.expect(400);
-	const user = await User.findById(activeUserOneId);
-	const passwordMatch = await bcrypt.compare('Smith', user.password);
-	expect(passwordMatch).toBeFalsy();
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -289,7 +265,7 @@ test('Shouldn\'t update user by id if invalid id', async () => {
 		.patch('/users/abc123')
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ canAddRequest: true })
-		.expect(404);
+		.expect(400);
 });
 
 test('Shouldn\'t update user by id if invalid update', async () => {
@@ -301,6 +277,31 @@ test('Shouldn\'t update user by id if invalid update', async () => {
 	const user = await User.findById(activeUserOneId);
 	expect(user.status).toEqual('active');
 });
+
+test('Should n\'t update user if existing email', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({
+			name: 'Smith',
+			email: archivedUserOne.email
+		})
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	expect(user.email).toEqual(activeUserOne.email);
+});
+
+test('Should n\'t update user if invalid password', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ password: 'Smith' })
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	const passwordMatch = await bcrypt.compare('Smith', user.password);
+	expect(passwordMatch).toBeFalsy();
+});
+
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
