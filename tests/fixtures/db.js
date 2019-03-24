@@ -30,7 +30,9 @@ const activeUserOne = {
 	]
 };
 
+const archivedUserOneId = new mongoose.Types.ObjectId();
 const archivedUserOne = {
+	_id: archivedUserOneId,
 	name: 'John',
 	email: 'john@example.com',
 	password: 'John123456',
@@ -50,6 +52,7 @@ module.exports = {
 	admin,
 	activeUserOneId,
 	activeUserOne,
+	archivedUserOneId,
 	archivedUserOne,
 	setupDatabase
 };

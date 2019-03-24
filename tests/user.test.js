@@ -98,7 +98,7 @@ test('Shouldn\'t signup new user with invalid status value', async () => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-////////////////////////  TESTS RELATED FINDING USERS /////////////////////////
+////////////////////  TESTS RELATED FINDING ALL USERS /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should fecth all users', async () => {
 	const { body } = await request(app)
@@ -120,6 +120,41 @@ test('Shouldn\'t fecth all users if not admin', async () => {
 test('Shouldn\'t fecth all users if not authenticated', async () => {
 	await request(app)
 		.get('/users')
+		.send()
+		.expect(401);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////// TESTS RELATED FINDING USERS BY ID	///////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find user by id if admin', async () => {
+	const { body } = await request(app)
+		.get(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body.name).toEqual(activeUserOne.name);
+});
+
+test('Should not find user by id if not admin', async () => {
+	await request(app)
+		.get(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(401);
+});
+
+test('Should not find user by id if wrong id used', async () => {
+	await request(app)
+		.get('/users/abc123')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(404);
+});
+
+test('Should not find user by id if not authenticated', async () => {
+	await request(app)
+		.get(`/users/${activeUserOneId}`)
 		.send()
 		.expect(401);
 });

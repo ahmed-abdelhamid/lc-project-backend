@@ -25,6 +25,17 @@ router.get('/users', auth('admin'), async (req, res) => {
 	res.send(users);
 });
 
+// Find user by ID
+router.get('/users/:id', auth('admin'), async (req, res) => {
+	const _id = req.params.id;
+	try {
+		const user = await User.findById(_id);
+		res.send(user);
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
+
 // Login existing user
 router.post('/users/login', async (req, res) => {
 	try {
@@ -41,7 +52,7 @@ router.post('/users/login', async (req, res) => {
 router.post('/users/logout', auth(), async ({ user, token }, res) => {
 	try {
 		user.tokens = user.tokens.filter(({ userToken }) => userToken !== token);
-		await user.save({ validateBeforeSave: false });
+		await user.save();
 		res.send();
 	} catch (e) {
 		res.status(500).send(e);

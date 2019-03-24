@@ -23,9 +23,9 @@ const userSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 			validate(value) {
-				if (!value.match(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,15}$/)) {
+				if (!value.match(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/)) {
 					throw new Error(
-						'Password must be at least 6 characters, no more than 15 characters, and must include at least one upper case letter, one lower case letter, and one numeric digit.'
+						'Password must be at least 6 characters, and must include at least one upper case letter, one lower case letter, and one numeric digit.'
 					);
 				}
 			}
@@ -93,7 +93,7 @@ userSchema.methods.generateAuthToken = async function() {
 	const user = this;
 	const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);
 	user.tokens = user.tokens.concat({ token });
-	await user.save({ validateBeforeSave: false });
+	await user.save();
 
 	return token;
 };
