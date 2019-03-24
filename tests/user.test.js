@@ -303,6 +303,46 @@ test('Should n\'t update user if invalid password', async () => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+//////////////////////  TESTS RELATED TO ARCHIVE USER  ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should archive user if admin', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}/archive`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(200);
+	const user = await User.findById(activeUserOne);
+	expect(user.status).toEqual('archive');
+});
+
+test('Should not archive user if not admin', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}/archive`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(401);
+	const user = await User.findById(activeUserOne);
+	expect(user.status).toEqual('active');
+});
+
+test('Should not archive user if not authenticated', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}/archive`)
+		.send()
+		.expect(401);
+	const user = await User.findById(activeUserOne);
+	expect(user.status).toEqual('active');
+});
+
+test('Should generate 404 error if wrong id', async () => {
+	await request(app)
+		.patch('/users/abc123/archive')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(404);
+});
+
+///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should login user', async () => {
