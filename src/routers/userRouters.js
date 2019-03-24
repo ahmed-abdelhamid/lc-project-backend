@@ -107,6 +107,18 @@ router.patch('/users/:id/archive', auth('admin'), async ({ params }, res) => {
 });
 
 // Activate user
+router.patch('/users/:id/activate', auth('admin'), async ({ params }, res) => {
+	try {
+		await User.findByIdAndUpdate(
+			params.id,
+			{ status: 'active' },
+			{ runValidators: true }
+		);
+		res.send();
+	} catch (e) {
+		res.status(404).send(e);
+	}
+});
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

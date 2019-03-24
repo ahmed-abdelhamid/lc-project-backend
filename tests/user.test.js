@@ -6,6 +6,7 @@ const {
 	admin,
 	activeUserOneId,
 	activeUserOne,
+	archivedUserOneId,
 	archivedUserOne,
 	setupDatabase
 } = require('./fixtures/db');
@@ -337,6 +338,46 @@ test('Should not archive user if not authenticated', async () => {
 test('Should generate 404 error if wrong id', async () => {
 	await request(app)
 		.patch('/users/abc123/archive')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(404);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////  TESTS RELATED TO ACTIVATE USER  ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should activate user if admin', async () => {
+	await request(app)
+		.patch(`/users/${archivedUserOneId}/activate`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(200);
+	const user = await User.findById(archivedUserOne);
+	expect(user.status).toEqual('active');
+});
+
+test('Should not activate user if not admin', async () => {
+	await request(app)
+		.patch(`/users/${archivedUserOneId}/activate`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(401);
+	const user = await User.findById(archivedUserOne);
+	expect(user.status).toEqual('archive');
+});
+
+test('Should not activate user if not authenticated', async () => {
+	await request(app)
+		.patch(`/users/${archivedUserOneId}/activate`)
+		.send()
+		.expect(401);
+	const user = await User.findById(archivedUserOne);
+	expect(user.status).toEqual('archive');
+});
+
+test('Should generate 404 error if wrong id', async () => {
+	await request(app)
+		.patch('/users/abc123/activate')
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(404);
