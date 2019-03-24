@@ -18,11 +18,12 @@ router.post('/users', async ({ body }, res) => {
 
 // Get all users (ADMIN ONLY)
 router.get('/users', auth('admin'), async (req, res) => {
-	const users = await User.find();
-	if (!users) {
-		return res.status(404).send();
+	try {
+		const users = await User.find();
+		res.send(users);
+	} catch (e) {
+		res.status(404).send();
 	}
-	res.send(users);
 });
 
 // Find user's own profile
@@ -49,7 +50,7 @@ router.patch('/users/me', auth(), async ({ user, body }, res) => {
 		allowedUpdates.includes(update)
 	);
 	if (!isValidOperation) {
-		return res.status(400).send({ error: 'Invalud Updates' });
+		return res.status(400).send({ error: 'Invalid Updates' });
 	}
 	try {
 		updates.forEach(update => (user[update] = body[update]));
@@ -61,6 +62,40 @@ router.patch('/users/me', auth(), async ({ user, body }, res) => {
 });
 
 // Update user by ID (ADMIN ONLY)
+router.patch('/users/:id', auth('admin'), async ({ params, body }, res) => {
+	let user;
+	const _id = params.id;
+	const updates = Object.keys(body);
+	const allowedUpdates = [
+		'password',
+		'cannAddLcRequest',
+		'canAddRequest',
+		'canAddPayment',
+		'canAddLc',
+		'canAddExtension',
+		'canAddAmendement',
+		'auth'
+	];
+	const isValidOperation = updates.every(update =>
+		allowedUpdates.includes(update)
+	);
+	if (!isValidOperation) {
+		return res.status(400).send({ error: 'Invalid Updates' });
+	}
+	try {
+		user = await User.findById(_id);
+	} catch (e) {
+		return res.status(404).send(e);
+	}
+
+	try {
+		updates.forEach(update => (user[update] = body[update]));
+		await user.save();
+		res.send(user);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

@@ -254,6 +254,54 @@ test('Should n\'t update user if invalid password', async () => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+////////////  TESTS RELATED TO UPDATES USER BY ID  ////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should update user by id', async () => {
+	const { body } = await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ canAddRequest: true })
+		.expect(200);
+	expect(body.canAddRequest).toBeTruthy();
+});
+
+test('Shouldn\'t update user by id if not admin', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({ canAddRequest: true })
+		.expect(401);
+	const user = await User.findById(activeUserOneId);
+	expect(user.canAddRequest).toBeFalsy();
+});
+
+test('Shouldn\'t update user by id if not authenticated', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.send({ canAddRequest: true })
+		.expect(401);
+	const user = await User.findById(activeUserOneId);
+	expect(user.canAddRequest).toBeFalsy();
+});
+
+test('Shouldn\'t update user by id if invalid id', async () => {
+	await request(app)
+		.patch('/users/abc123')
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ canAddRequest: true })
+		.expect(404);
+});
+
+test('Shouldn\'t update user by id if invalid update', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ status: 'archive' })
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	expect(user.status).toEqual('active');
+});
+///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should login user', async () => {
