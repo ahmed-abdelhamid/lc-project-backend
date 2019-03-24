@@ -160,6 +160,25 @@ test('Should not find user by id if not authenticated', async () => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+///////////////  TESTS RELATED TO FIND USER'S PROFILE  ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find user\'s own profile', async () => {
+	const { body } = await request(app)
+		.get('/users/me')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body.name).toEqual(activeUserOne.name);
+});
+
+test('Should not find user\'s own profile if not authenticated', async () => {
+	await request(app)
+		.get('/users/me')
+		.send()
+		.expect(401);
+});
+
+///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should login user', async () => {

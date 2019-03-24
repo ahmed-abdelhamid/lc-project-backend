@@ -25,6 +25,11 @@ router.get('/users', auth('admin'), async (req, res) => {
 	res.send(users);
 });
 
+// Find user's own profile
+router.get('/users/me', auth(), async ({ user }, res) => {
+	res.send(user);
+});
+
 // Find user by ID
 router.get('/users/:id', auth('admin'), async (req, res) => {
 	const _id = req.params.id;
