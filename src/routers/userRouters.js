@@ -16,7 +16,7 @@ router.post('/users', async ({ body }, res) => {
 	}
 });
 
-// Get all users
+// Get all users (ADMIN ONLY)
 router.get('/users', auth('admin'), async (req, res) => {
 	const users = await User.find();
 	if (!users) {
@@ -30,7 +30,7 @@ router.get('/users/me', auth(), async ({ user }, res) => {
 	res.send(user);
 });
 
-// Find user by ID
+// Find user by ID (ADMIN ONLY)
 router.get('/users/:id', auth('admin'), async (req, res) => {
 	const _id = req.params.id;
 	try {
@@ -40,6 +40,27 @@ router.get('/users/:id', auth('admin'), async (req, res) => {
 		res.status(404).send(e);
 	}
 });
+
+// Update user's own profile
+router.patch('/users/me', auth(), async ({ user, body }, res) => {
+	const updates = Object.keys(body);
+	const allowedUpdates = ['name', 'email', 'password', 'phone'];
+	const isValidOperation = updates.every(update =>
+		allowedUpdates.includes(update)
+	);
+	if (!isValidOperation) {
+		return res.status(400).send({ error: 'Invalud Updates' });
+	}
+	try {
+		updates.forEach(update => (user[update] = body[update]));
+		await user.save();
+		res.send(user);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
+
+// Update user by ID (ADMIN ONLY)
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

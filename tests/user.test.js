@@ -1,4 +1,5 @@
 const request = require('supertest');
+const bcrypt = require('bcryptjs');
 const app = require('../src/app');
 const User = require('../src/models/userModel');
 const {
@@ -176,6 +177,80 @@ test('Should not find user\'s own profile if not authenticated', async () => {
 		.get('/users/me')
 		.send()
 		.expect(401);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////  TESTS RELATED TO UPDATES USER'S PROFILE  ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should update user', async () => {
+	const { body } = await request(app)
+		.patch('/users/me')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({
+			name: 'Smith',
+			email: 'smith@example.com',
+			password: 'Smith123456'
+		})
+		.expect(200);
+	expect(body).toMatchObject({
+		name: 'Smith',
+		email: 'smith@example.com',
+		canAddRequest: false
+	});
+	const user = await User.findById(activeUserOneId);
+	const passwordMatch = await bcrypt.compare('Smith123456', user.password);
+	expect(passwordMatch).toBeTruthy();
+});
+
+test('Should n\'t update user if not authenticated', async () => {
+	await request(app)
+		.patch('/users/me')
+		.send({ name: 'Smith' })
+		.expect(401);
+	const user = await User.findById(activeUserOneId);
+	expect(user).toMatchObject({
+		name: activeUserOne.name,
+		email: activeUserOne.email,
+		canAddRequest: false
+	});
+});
+
+test('Should n\'t update user if existing email', async () => {
+	await request(app)
+		.patch('/users/me')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({
+			name: 'Smith',
+			email: archivedUserOne.email
+		})
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	expect(user.email).toEqual(activeUserOne.email);
+});
+
+test('Should n\'t update user if invalid update', async () => {
+	await request(app)
+		.patch('/users/me')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({
+			name: 'Smith',
+			canAddRequest: true
+		})
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	expect(user.name).toEqual(activeUserOne.name);
+	expect(user.canAddRequest).toBeFalsy();
+});
+
+test('Should n\'t update user if invalid password', async () => {
+	await request(app)
+		.patch('/users/me')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({ password: 'Smith' })
+		.expect(400);
+	const user = await User.findById(activeUserOneId);
+	const passwordMatch = await bcrypt.compare('Smith', user.password);
+	expect(passwordMatch).toBeFalsy();
 });
 
 ///////////////////////////////////////////////////////////////////////////////
