@@ -14,6 +14,12 @@ const supplierSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
+supplierSchema.virtual('contracts', {
+	ref: 'Contract',
+	localField: '_id',
+	foreignField: 'supplierId'
+});
+
 const Supplier = mongoose.model('Supplier', supplierSchema);
 
 module.exports = Supplier;

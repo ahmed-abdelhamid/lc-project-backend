@@ -58,6 +58,12 @@ userSchema.virtual('suppliers', {
 	foreignField: 'createdBy'
 });
 
+userSchema.virtual('contracts', {
+	ref: 'Contract',
+	localField: '_id',
+	foreignField: 'createdBy'
+});
+
 // Hide Sensitive Data
 userSchema.methods.toJSON = function() {
 	const user = this;
