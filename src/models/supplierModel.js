@@ -2,9 +2,14 @@ const mongoose = require('mongoose');
 
 const supplierSchema = new mongoose.Schema(
 	{
-		name: { type: String, required: true },
-		specialization: { type: String, required: true }, // Not sure of it, Maybe needs more validation
-		notes: { type: String }
+		name: { type: String, required: true, unique: true, trim: true },
+		specialization: { type: String, required: true, trim: true },
+		notes: { type: String },
+		createdBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'User'
+		}
 	},
 	{ timestamps: true }
 );
