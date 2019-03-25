@@ -17,7 +17,7 @@ router.post('/users', async ({ body }, res) => {
 });
 
 // Get all users (ADMIN ONLY)
-router.get('/users', auth('admin'), async (req, res) => {
+router.get('/users', auth({ auth: 'admin' }), async (req, res) => {
 	try {
 		const users = await User.find();
 		res.send(users);
@@ -32,7 +32,7 @@ router.get('/users/me', auth(), async ({ user }, res) => {
 });
 
 // Find user by ID (ADMIN ONLY)
-router.get('/users/:id', auth('admin'), async (req, res) => {
+router.get('/users/:id', auth({ auth: 'admin' }), async (req, res) => {
 	const _id = req.params.id;
 	try {
 		const user = await User.findById(_id);
@@ -62,68 +62,80 @@ router.patch('/users/me', auth(), async ({ user, body }, res) => {
 });
 
 // Update user by ID (ADMIN ONLY)
-router.patch('/users/:id', auth('admin'), async ({ params, body }, res) => {
-	const _id = params.id;
-	const updates = Object.keys(body);
-	const allowedUpdates = [
-		'password',
-		'canAdd',
-		'canRequest',
-		'canApprove',
-		'canRegister',
-		'auth'
-	];
-	const isValidOperation = updates.every(update =>
-		allowedUpdates.includes(update)
-	);
-	if (!isValidOperation) {
-		return res.status(400).send({ error: 'Invalid Updates' });
+router.patch(
+	'/users/:id',
+	auth({ auth: 'admin' }),
+	async ({ params, body }, res) => {
+		const _id = params.id;
+		const updates = Object.keys(body);
+		const allowedUpdates = [
+			'password',
+			'canAdd',
+			'canRequest',
+			'canApprove',
+			'canRegister',
+			'auth'
+		];
+		const isValidOperation = updates.every(update =>
+			allowedUpdates.includes(update)
+		);
+		if (!isValidOperation) {
+			return res.status(400).send({ error: 'Invalid Updates' });
+		}
+		try {
+			const user = await User.findByIdAndUpdate(_id, body, {
+				new: true,
+				runValidators: true
+			});
+			res.send(user);
+		} catch (e) {
+			res.status(400).send(e);
+		}
 	}
-	try {
-		const user = await User.findByIdAndUpdate(_id, body, {
-			new: true,
-			runValidators: true
-		});
-		res.send(user);
-	} catch (e) {
-		res.status(400).send(e);
-	}
-});
+);
 
 // Archive user
-router.patch('/users/:id/archive', auth('admin'), async ({ params }, res) => {
-	try {
-		await User.findByIdAndUpdate(
-			params.id,
-			{
-				status: 'archived',
-				tokens: [],
-				canRequest: false,
-				canAdd: false,
-				canRegister: false,
-				canApprove: false
-			},
-			{ runValidators: true }
-		);
-		res.send();
-	} catch (e) {
-		res.status(404).send(e);
+router.patch(
+	'/users/:id/archive',
+	auth({ auth: 'admin' }),
+	async ({ params }, res) => {
+		try {
+			await User.findByIdAndUpdate(
+				params.id,
+				{
+					status: 'archived',
+					tokens: [],
+					canRequest: false,
+					canAdd: false,
+					canRegister: false,
+					canApprove: false
+				},
+				{ runValidators: true }
+			);
+			res.send();
+		} catch (e) {
+			res.status(404).send(e);
+		}
 	}
-});
+);
 
 // Activate user
-router.patch('/users/:id/activate', auth('admin'), async ({ params }, res) => {
-	try {
-		await User.findByIdAndUpdate(
-			params.id,
-			{ status: 'active' },
-			{ runValidators: true }
-		);
-		res.send();
-	} catch (e) {
-		res.status(404).send(e);
+router.patch(
+	'/users/:id/activate',
+	auth({ auth: 'admin' }),
+	async ({ params }, res) => {
+		try {
+			await User.findByIdAndUpdate(
+				params.id,
+				{ status: 'active' },
+				{ runValidators: true }
+			);
+			res.send();
+		} catch (e) {
+			res.status(404).send(e);
+		}
 	}
-});
+);
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

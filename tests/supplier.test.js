@@ -2,7 +2,8 @@ const request = require('supertest');
 const app = require('../src/app');
 const Supplier = require('../src/models/supplierModel');
 const {
-	activeUserOneId,
+	adminId,
+	admin,
 	activeUserOne,
 	activeUserTwoId,
 	supplierOneId,
@@ -18,10 +19,12 @@ beforeEach(setupDatabase);
 test('Should create new supplier', async () => {
 	const { body } = await request(app)
 		.post('/suppliers')
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({
 			name: 'New Supplier',
-			specialization: 'New Specialization'
+			specialization: 'New Specialization',
+			rcRegisteration: 99999,
+			vatRegisteration: 99999
 		})
 		.expect(201);
 	const supplier = await Supplier.findById(body._id);
@@ -30,7 +33,7 @@ test('Should create new supplier', async () => {
 	// Check response
 	expect(body).toMatchObject({
 		name: 'New Supplier',
-		createdBy: activeUserOneId.toString()
+		createdBy: adminId.toString()
 	});
 });
 
@@ -73,7 +76,7 @@ test('Should not find supplier of wrong id', async () => {
 test('Should update supplier by id', async () => {
 	const { body } = await request(app)
 		.patch(`/suppliers/${supplierOneId}`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ notes: 'This is a new note' })
 		.expect(200);
 	expect(body.notes).toEqual('This is a new note');
@@ -82,7 +85,7 @@ test('Should update supplier by id', async () => {
 test('Should not update supplier if invalid update', async () => {
 	await request(app)
 		.patch(`/suppliers/${supplierOneId}`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ createdBy: activeUserTwoId })
 		.expect(400);
 	const supplier = await Supplier.findById(supplierOneId);

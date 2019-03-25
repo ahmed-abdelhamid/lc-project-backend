@@ -4,6 +4,8 @@ const supplierSchema = new mongoose.Schema(
 	{
 		name: { type: String, required: true, unique: true, trim: true },
 		specialization: { type: String, required: true, trim: true },
+		vatRegisteration: { type: Number, unique: true, required: true },
+		rcRegisteration: { type: Number, unique: true, required: true },
 		notes: { type: String, trim: true },
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,

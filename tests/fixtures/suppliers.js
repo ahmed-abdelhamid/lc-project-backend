@@ -10,6 +10,8 @@ const supplierOne = {
 	_id: supplierOneId,
 	name: 'Supplier One',
 	specialization: 'Specialization One',
+	vatRegisteration: 1,
+	rcRegisteration: 1,
 	createdBy: activeUserOneId
 };
 
@@ -18,6 +20,8 @@ const supplierTwo = {
 	_id: supplierTwoId,
 	name: 'Supplier Two',
 	specialization: 'Specialization Two',
+	vatRegisteration: 2,
+	rcRegisteration: 2,
 	createdBy: activeUserOneId
 };
 
@@ -26,6 +30,8 @@ const supplierThree = {
 	_id: supplierThreeId,
 	name: 'Supplier Three',
 	specialization: 'Specialization Three',
+	vatRegisteration: 3,
+	rcRegisteration: 3,
 	createdBy: activeUserTwoId
 };
 
@@ -34,6 +40,8 @@ const supplierFour = {
 	_id: supplierFourId,
 	name: 'Supplier Four',
 	specialization: 'Specialization Four',
+	vatRegisteration: 4,
+	rcRegisteration: 4,
 	createdBy: archivedUserOneId
 };
 
