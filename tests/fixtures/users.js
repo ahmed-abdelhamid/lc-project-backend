@@ -7,12 +7,10 @@ const admin = {
 	name: 'Admin',
 	email: 'admin@example.com',
 	password: 'Admin123',
-	cannAddLcRequest: true,
-	canAddRequest: true,
-	canAddPayment: true,
-	canAddLc: true,
-	canAddExtension: true,
-	canAddAmendement: true,
+	cannAdd: true,
+	canRequest: true,
+	canRegister: true,
+	canApprove: true,
 	status: 'active',
 	auth: 'admin',
 	tokens: [{ token: jwt.sign({ _id: adminId }, process.env.JWT_SECRET) }]
@@ -24,6 +22,7 @@ const activeUserOne = {
 	name: 'Mike',
 	email: 'mike@example.com',
 	password: 'Mike123456',
+	status: 'active',
 	tokens: [
 		{ token: jwt.sign({ _id: activeUserOneId }, process.env.JWT_SECRET) }
 	]
@@ -35,6 +34,7 @@ const activeUserTwo = {
 	name: 'Hany',
 	email: 'hany@example.com',
 	password: 'Hany123456',
+	status: 'active',
 	tokens: [
 		{ token: jwt.sign({ _id: activeUserOneId }, process.env.JWT_SECRET) }
 	]
@@ -46,7 +46,7 @@ const archivedUserOne = {
 	name: 'John',
 	email: 'john@example.com',
 	password: 'John123456',
-	status: 'archive'
+	status: 'archived'
 };
 
 module.exports = {

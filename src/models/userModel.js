@@ -39,13 +39,16 @@ const userSchema = new mongoose.Schema(
 				}
 			}
 		},
-		cannAddLcRequest: { type: Boolean, default: false },
-		canAddRequest: { type: Boolean, default: false },
-		canAddPayment: { type: Boolean, default: false },
-		canAddLc: { type: Boolean, default: false },
-		canAddExtension: { type: Boolean, default: false },
-		canAddAmendement: { type: Boolean, default: false },
-		status: { type: String, enum: ['active', 'archive'], default: 'active' },
+		notes: { type: String, trim: true },
+		canRequest: { type: Boolean, default: false },
+		canAdd: { type: Boolean, default: false },
+		canRegister: { type: Boolean, default: false },
+		canApprove: { type: Boolean, default: false },
+		status: {
+			type: String,
+			enum: ['new', 'blocked', 'active', 'archived'],
+			default: 'new'
+		},
 		auth: { type: String, enum: ['admin', 'user'], default: 'user' },
 		tokens: [{ token: { type: String, required: true } }]
 	},
@@ -87,7 +90,7 @@ userSchema.pre('save', async function(next) {
 
 // Find User By Credentials
 userSchema.statics.findByCredentials = async (email, password) => {
-	const user = await User.findOne({ email, status: 'active' });
+	const user = await User.findOne({ email, status: { $ne: 'archived' } });
 	if (!user) {
 		throw new Error('Unable to login');
 	}

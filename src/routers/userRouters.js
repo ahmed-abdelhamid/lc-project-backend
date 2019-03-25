@@ -67,12 +67,10 @@ router.patch('/users/:id', auth('admin'), async ({ params, body }, res) => {
 	const updates = Object.keys(body);
 	const allowedUpdates = [
 		'password',
-		'cannAddLcRequest',
-		'canAddRequest',
-		'canAddPayment',
-		'canAddLc',
-		'canAddExtension',
-		'canAddAmendement',
+		'canAdd',
+		'canRequest',
+		'canApprove',
+		'canRegister',
 		'auth'
 	];
 	const isValidOperation = updates.every(update =>
@@ -98,14 +96,12 @@ router.patch('/users/:id/archive', auth('admin'), async ({ params }, res) => {
 		await User.findByIdAndUpdate(
 			params.id,
 			{
-				status: 'archive',
+				status: 'archived',
 				tokens: [],
-				cannAddLcRequest: false,
-				canAddRequest: false,
-				canAddPayment: false,
-				canAddLc: false,
-				canAddExtension: false,
-				canAddAmendement: false
+				canRequest: false,
+				canAdd: false,
+				canRegister: false,
+				canApprove: false
 			},
 			{ runValidators: true }
 		);

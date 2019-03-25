@@ -32,8 +32,8 @@ test('Should signup new user', async () => {
 	// Check response
 	expect(body).toMatchObject({
 		user: {
-			status: 'active',
-			canAddRequest: false,
+			status: 'new',
+			canAdd: false,
 			auth: 'user'
 		},
 		token: user.tokens[0].token
@@ -197,14 +197,14 @@ test('Should update user', async () => {
 	expect(body).toMatchObject({
 		name: 'Smith',
 		email: 'smith@example.com',
-		canAddRequest: false
+		canAdd: false
 	});
 	const user = await User.findById(activeUserOneId);
 	const passwordMatch = await bcrypt.compare('Smith123456', user.password);
 	expect(passwordMatch).toBeTruthy();
 });
 
-test('Should n\'t update user if not authenticated', async () => {
+test('Shouldn\'t update user if not authenticated', async () => {
 	await request(app)
 		.patch('/users/me')
 		.send({ name: 'Smith' })
@@ -213,22 +213,22 @@ test('Should n\'t update user if not authenticated', async () => {
 	expect(user).toMatchObject({
 		name: activeUserOne.name,
 		email: activeUserOne.email,
-		canAddRequest: false
+		canAdd: false
 	});
 });
 
-test('Should n\'t update user if invalid update', async () => {
+test('Shouldn\'t update user if invalid update', async () => {
 	await request(app)
 		.patch('/users/me')
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send({
 			name: 'Smith',
-			canAddRequest: true
+			canAdd: true
 		})
 		.expect(400);
 	const user = await User.findById(activeUserOneId);
 	expect(user.name).toEqual(activeUserOne.name);
-	expect(user.canAddRequest).toBeFalsy();
+	expect(user.canAdd).toBeFalsy();
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -238,9 +238,9 @@ test('Should update user by id', async () => {
 	const { body } = await request(app)
 		.patch(`/users/${activeUserOneId}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ canAddRequest: true })
+		.send({ canAdd: true })
 		.expect(200);
-	expect(body.canAddRequest).toBeTruthy();
+	expect(body.canAdd).toBeTruthy();
 });
 
 test('Shouldn\'t update user by id if not admin', async () => {
@@ -314,7 +314,7 @@ test('Should archive user if admin', async () => {
 		.send()
 		.expect(200);
 	const user = await User.findById(activeUserOne);
-	expect(user.status).toEqual('archive');
+	expect(user.status).toEqual('archived');
 	expect(user.tokens).toHaveLength(0);
 });
 
@@ -365,7 +365,7 @@ test('Should not activate user if not admin', async () => {
 		.send()
 		.expect(401);
 	const user = await User.findById(archivedUserOne);
-	expect(user.status).toEqual('archive');
+	expect(user.status).toEqual('archived');
 });
 
 test('Should not activate user if not authenticated', async () => {
@@ -374,7 +374,7 @@ test('Should not activate user if not authenticated', async () => {
 		.send()
 		.expect(401);
 	const user = await User.findById(archivedUserOne);
-	expect(user.status).toEqual('archive');
+	expect(user.status).toEqual('archived');
 });
 
 test('Should generate 404 error if wrong id', async () => {
@@ -388,7 +388,7 @@ test('Should generate 404 error if wrong id', async () => {
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////////  TESTS RELATED TO LOGIN USER  ////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should login user', async () => {
+test('Should login user when new user', async () => {
 	const { email, password } = activeUserOne;
 	const { body } = await request(app)
 		.post('/users/login')
