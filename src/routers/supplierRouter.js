@@ -24,9 +24,15 @@ router.get('/suppliers', auth(), async (req, res) => {
 	}
 });
 
-// Read all suppliers created by specific user
-
 // Read supplier by id
+router.get('/suppliers/:id', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.id);
+		res.send(supplier);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 // Update supplier data
 

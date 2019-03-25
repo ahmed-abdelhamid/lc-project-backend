@@ -27,9 +27,12 @@ const setupDatabase = async () => {
 
 	await new User(admin).save();
 	await new User(activeUserOne).save();
+	await new User(activeUserTwo).save();
 	await new User(archivedUserOne).save();
 	await new Supplier(supplierOne).save();
 	await new Supplier(supplierTwo).save();
+	await new Supplier(supplierThree).save();
+	await new Supplier(supplierFour).save();
 };
 
 module.exports = {

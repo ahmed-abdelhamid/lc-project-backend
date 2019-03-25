@@ -102,13 +102,14 @@ test('Shouldn\'t signup new user with invalid status value', async () => {
 ///////////////////////////////////////////////////////////////////////////////
 ////////////////////  TESTS RELATED FINDING ALL USERS /////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should fecth all users', async () => {
+test('Should fetch all users', async () => {
 	const { body } = await request(app)
 		.get('/users')
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(3);
+	const users = await User.find();
+	expect(body).toHaveLength(users.length);
 });
 
 test('Shouldn\'t fecth all users if not admin', async () => {

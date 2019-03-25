@@ -4,6 +4,8 @@ const Supplier = require('../src/models/supplierModel');
 const {
 	activeUserOneId,
 	activeUserOne,
+	supplierOneId,
+	supplierOne,
 	setupDatabase
 } = require('./fixtures/db');
 
@@ -29,4 +31,37 @@ test('Should create new supplier', async () => {
 		name: 'New Supplier',
 		createdBy: activeUserOneId.toString()
 	});
+});
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////  TESTS RELATED TO READ ALL SUPPLIERS  /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should get all suppliers', async () => {
+	const { body } = await request(app)
+		.get('/suppliers')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	const suppliers = await Supplier.find();
+	expect(body).toHaveLength(suppliers.length);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////  TESTS RELATED TO READ SUPPLIER BY ID  /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find supplier by id', async () => {
+	const { body } = await request(app)
+		.get(`/suppliers/${supplierOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body.name).toEqual(supplierOne.name);
+});
+
+test('Should not find supplier of wrong id', async () => {
+	await request(app)
+		.get('/suppliers/abc123')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(404);
 });
