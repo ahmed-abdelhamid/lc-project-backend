@@ -52,6 +52,12 @@ const userSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
+userSchema.virtual('suppliers', {
+	ref: 'Supplier',
+	localField: '_id',
+	foreignField: 'createdBy'
+});
+
 // Hide Sensitive Data
 userSchema.methods.toJSON = function() {
 	const user = this;
