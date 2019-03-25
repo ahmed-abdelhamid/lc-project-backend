@@ -55,6 +55,4 @@ router.patch('/suppliers/:id', auth(), async ({ params, body }, res) => {
 	}
 });
 
-// Archive supplier
-
 module.exports = router;
