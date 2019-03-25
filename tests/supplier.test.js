@@ -4,6 +4,7 @@ const Supplier = require('../src/models/supplierModel');
 const {
 	activeUserOneId,
 	activeUserOne,
+	activeUserTwoId,
 	supplierOneId,
 	supplierOne,
 	setupDatabase
@@ -64,4 +65,26 @@ test('Should not find supplier of wrong id', async () => {
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////  TESTS RELATED TO UPDATE SUPPLIER BY ID  /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should update supplier by id', async () => {
+	const { body } = await request(app)
+		.patch(`/suppliers/${supplierOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({ notes: 'This is a new note' })
+		.expect(200);
+	expect(body.notes).toEqual('This is a new note');
+});
+
+test('Should not update supplier if invalid update', async () => {
+	await request(app)
+		.patch(`/suppliers/${supplierOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send({ createdBy: activeUserTwoId })
+		.expect(400);
+	const supplier = await Supplier.findById(supplierOneId);
+	expect(supplier.createdBy).toEqual(supplierOne.createdBy);
 });

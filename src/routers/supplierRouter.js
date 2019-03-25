@@ -35,6 +35,25 @@ router.get('/suppliers/:id', auth(), async ({ params }, res) => {
 });
 
 // Update supplier data
+router.patch('/suppliers/:id', auth(), async ({ params, body }, res) => {
+	const updates = Object.keys(body);
+	const allowedUpdates = ['name', 'specialization', 'notes'];
+	const isValidOperation = updates.every(update =>
+		allowedUpdates.includes(update)
+	);
+	if (!isValidOperation) {
+		return res.status(400).send({ error: 'Invalid Updates' });
+	}
+	try {
+		const supplier = await Supplier.findByIdAndUpdate(params.id, body, {
+			new: true,
+			runValidators: true
+		});
+		res.send(supplier);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // Archive supplier
 
