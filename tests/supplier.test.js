@@ -1,7 +1,11 @@
 const request = require('supertest');
 const app = require('../src/app');
 const Supplier = require('../src/models/supplierModel');
-const { setupDatabase } = require('./fixtures/db');
+const {
+	activeUserOneId,
+	activeUserOne,
+	setupDatabase
+} = require('./fixtures/db');
 
 beforeEach(setupDatabase);
 
@@ -11,6 +15,7 @@ beforeEach(setupDatabase);
 test('Should create new supplier', async () => {
 	const { body } = await request(app)
 		.post('/suppliers')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send({
 			name: 'Supplier One',
 			specialization: 'Specialization One'
@@ -20,5 +25,8 @@ test('Should create new supplier', async () => {
 	// Check that user saved in database
 	expect(supplier).not.toBeNull();
 	// Check response
-	expect(body).toMatchObject({ name: 'Supplier One' });
+	expect(body).toMatchObject({
+		name: 'Supplier One',
+		createdBy: activeUserOneId.toString()
+	});
 });
