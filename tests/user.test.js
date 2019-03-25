@@ -314,6 +314,7 @@ test('Should archive user if admin', async () => {
 		.expect(200);
 	const user = await User.findById(activeUserOne);
 	expect(user.status).toEqual('archive');
+	expect(user.tokens).toHaveLength(0);
 });
 
 test('Should not archive user if not admin', async () => {

@@ -97,7 +97,16 @@ router.patch('/users/:id/archive', auth('admin'), async ({ params }, res) => {
 	try {
 		await User.findByIdAndUpdate(
 			params.id,
-			{ status: 'archive' },
+			{
+				status: 'archive',
+				tokens: [],
+				cannAddLcRequest: false,
+				canAddRequest: false,
+				canAddPayment: false,
+				canAddLc: false,
+				canAddExtension: false,
+				canAddAmendement: false
+			},
 			{ runValidators: true }
 		);
 		res.send();
