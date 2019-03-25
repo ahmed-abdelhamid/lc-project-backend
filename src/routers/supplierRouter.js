@@ -14,4 +14,22 @@ router.post('/suppliers', auth(), async ({ user, body }, res) => {
 	}
 });
 
+// Read all suppliers
+router.get('/suppliers', auth(), async (req, res) => {
+	try {
+		const suppliers = await Supplier.find();
+		res.send(suppliers);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+
+// Read all suppliers created by specific user
+
+// Read supplier by id
+
+// Update supplier data
+
+// Archive supplier
+
 module.exports = router;

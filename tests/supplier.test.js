@@ -17,8 +17,8 @@ test('Should create new supplier', async () => {
 		.post('/suppliers')
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send({
-			name: 'Supplier One',
-			specialization: 'Specialization One'
+			name: 'New Supplier',
+			specialization: 'New Specialization'
 		})
 		.expect(201);
 	const supplier = await Supplier.findById(body._id);
@@ -26,7 +26,7 @@ test('Should create new supplier', async () => {
 	expect(supplier).not.toBeNull();
 	// Check response
 	expect(body).toMatchObject({
-		name: 'Supplier One',
+		name: 'New Supplier',
 		createdBy: activeUserOneId.toString()
 	});
 });
