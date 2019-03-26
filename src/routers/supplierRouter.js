@@ -49,8 +49,8 @@ router.get('/users/:userId/suppliers', auth(), async ({ params }, res) => {
 		if (!user) {
 			throw new Error();
 		}
-		const suppliers = await Supplier.find({ createdBy: params.userId });
-		res.send(suppliers);
+		await user.populate('suppliers').execPopulate();
+		res.send(user.suppliers);
 	} catch (e) {
 		res.status(404).send();
 	}

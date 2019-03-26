@@ -33,6 +33,17 @@ router.get('/contracts', auth(), async (req, res) => {
 });
 
 // Get contract by ID
+router.get('/contracts/:id', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.id);
+		if (!contract) {
+			throw new Error();
+		}
+		res.send(contract);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 // Get contracts created by specific user
 

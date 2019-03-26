@@ -7,6 +7,8 @@ const {
 	admin,
 	activeUserOne,
 	supplierOneId,
+	contractOneId,
+	contractOne,
 	setupDatabase
 } = require('./fixtures/db');
 
@@ -46,4 +48,24 @@ test('Should find all contracts', async () => {
 		.send()
 		.expect(200);
 	expect(body).toHaveLength(5);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////  TESTS RELATED TO GET A CONTRACT BY ID  //////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find a contract by id', async () => {
+	const { body } = await request(app)
+		.get(`/contracts/${contractOneId}`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body.name).toEqual(contractOne.name);
+});
+
+test('Should not find a contract with wrong id', async () => {
+	await request(app)
+		.get(`/users/${new mongoose.Types.ObjectId()}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send()
+		.expect(404);
 });
