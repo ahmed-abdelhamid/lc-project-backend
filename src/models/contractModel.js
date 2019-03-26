@@ -14,6 +14,12 @@ const contractSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
+contractSchema.virtual('appendixes', {
+	ref: 'Appendix',
+	localField: '_id',
+	foreignField: 'contractId'
+});
+
 contractSchema.pre('save', async function(next) {
 	const contract = this;
 

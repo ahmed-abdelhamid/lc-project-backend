@@ -1,87 +1,87 @@
 const express = require('express');
-const Contract = require('../models/contractModel');
+const Appendix = require('../models/appendixModel');
 const User = require('../models/userModel');
-const Supplier = require('../models/supplierModel');
+const Contract = require('../models/contractModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
-// Create new contract
+// Create new Appendix
 router.post(
-	'/suppliers/:supplierId/contracts',
+	'/contracts/:contractId/appendixes',
 	auth({ canRegister: true }),
 	async ({ params, body, user }, res) => {
-		const contract = new Contract({
+		const appendix = new Appendix({
 			...body,
-			supplierId: params.supplierId,
+			contractId: params.contractId,
 			createdBy: user._id
 		});
 		try {
-			await contract.save();
-			res.status(201).send(contract);
+			await appendix.save();
+			res.status(201).send(appendix);
 		} catch (e) {
 			res.status(400).send(e);
 		}
 	}
 );
 
-// Get contracts for specific supplier
+// Get appendixes for specific contracts
 router.get(
-	'/suppliers/:supplierId/contracts',
+	'/contracts/:contractId/appendixes',
 	auth(),
 	async ({ params }, res) => {
 		try {
-			const supplier = await Supplier.findById(params.supplierId);
-			if (!supplier) {
+			const contract = await Contract.findById(params.contractId);
+			if (!contract) {
 				throw new Error();
 			}
-			await supplier.populate('contracts').execPopulate();
-			res.send(supplier.contracts);
+			await contract.populate('appendixes').execPopulate();
+			res.send(contract.appendixes);
 		} catch (e) {
 			res.status(404).send();
 		}
 	}
 );
 
-// Get all contracts
-router.get('/contracts', auth(), async (req, res) => {
+// Get all appendixes
+router.get('/appendixes', auth(), async (req, res) => {
 	try {
-		const contracts = await Contract.find();
-		res.send(contracts);
+		const appendixes = await Appendix.find();
+		res.send(appendixes);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 
-// Get contract by ID
-router.get('/contracts/:id', auth(), async ({ params }, res) => {
+// Get appendix by ID
+router.get('/appendixes/:id', auth(), async ({ params }, res) => {
 	try {
-		const contract = await Contract.findById(params.id);
-		if (!contract) {
+		const appendix = await Appendix.findById(params.id);
+		if (!appendix) {
 			throw new Error();
 		}
-		res.send(contract);
+		res.send(appendix);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Get contracts created by specific user
-router.get('/users/:userId/contracts', auth(), async ({ params }, res) => {
+// Get appendixes created by specific user
+router.get('/users/:userId/appendixes', auth(), async ({ params }, res) => {
 	try {
 		const user = await User.findById(params.userId);
 		if (!user) {
 			throw new Error();
 		}
-		await user.populate('contracts').execPopulate();
-		res.send(user.contracts);
+		await user.populate('appendixes').execPopulate();
+		res.send(user.appendixes);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Update contract
+// Update appendix
 router.patch(
-	'/contracts/:id',
+	'/appendixes/:id',
 	auth({ canRegister: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);
@@ -91,7 +91,7 @@ router.patch(
 			'duration',
 			'amount',
 			'notes',
-			'supplierId'
+			'contractId'
 		];
 		const isValidOperation = updates.every(update =>
 			allowedUpdates.includes(update)
@@ -100,14 +100,14 @@ router.patch(
 			return res.status(400).send({ error: 'Invalid Updates' });
 		}
 		try {
-			const contract = await Contract.findByIdAndUpdate(params.id, body, {
+			const appendix = await Appendix.findByIdAndUpdate(params.id, body, {
 				new: true,
 				runValidators: true
 			});
-			if (!contract) {
+			if (!appendix) {
 				throw new Error();
 			}
-			res.send(contract);
+			res.send(appendix);
 		} catch (e) {
 			res.status(400).send(e);
 		}
