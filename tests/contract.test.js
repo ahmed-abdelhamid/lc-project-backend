@@ -28,10 +28,9 @@ test('Should create new contract', async () => {
 });
 
 test('Should not create new contract if wrong supplier id', async () => {
-	const { body } = await request(app)
+	await request(app)
 		.post(`/suppliers/${new mongoose.Types.ObjectId()}/contracts`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ title: 'New Contract', amount: 5000, duration: 'One Month' })
 		.expect(400);
-	console.log(body);
 });

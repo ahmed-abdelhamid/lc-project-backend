@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Supplier = require('./supplierModel');
 
 const contractSchema = new mongoose.Schema(
 	{
@@ -12,6 +13,17 @@ const contractSchema = new mongoose.Schema(
 	},
 	{ timestamps: true }
 );
+
+contractSchema.pre('save', async function(next) {
+	const contract = this;
+
+	const supplier = await Supplier.findById(contract.supplierId);
+	if (!supplier) {
+		throw new Error({ error: 'Supplier not found' });
+	}
+
+	next();
+});
 
 const Contract = new mongoose.model('Contract', contractSchema);
 
