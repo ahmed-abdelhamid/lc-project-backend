@@ -1,5 +1,6 @@
 const express = require('express');
 const Contract = require('../models/contractModel');
+const User = require('../models/userModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -46,6 +47,18 @@ router.get('/contracts/:id', auth(), async ({ params }, res) => {
 });
 
 // Get contracts created by specific user
+router.get('/users/:userId/contracts', auth(), async ({ params }, res) => {
+	try {
+		const user = await User.findById(params.userId);
+		if (!user) {
+			throw new Error();
+		}
+		await user.populate('contracts').execPopulate();
+		res.send(user.contracts);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 // Get contracts for specific supplier
 
