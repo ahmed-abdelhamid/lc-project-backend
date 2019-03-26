@@ -111,3 +111,33 @@ test('Should not find any suppliers created by fake user id', async () => {
 		.send()
 		.expect(404);
 });
+
+///////////////////////////////////////////////////////////////////////////////
+////////////////  TESTS RELATED TO UPDATE CONTRACT BY ID  /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should update contract by id', async () => {
+	const { body } = await request(app)
+		.patch(`/contracts/${contractOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ notes: 'This is a new note' })
+		.expect(200);
+	expect(body.notes).toEqual('This is a new note');
+});
+
+test('Should not update contract if invalid update', async () => {
+	await request(app)
+		.patch(`/contracts/${contractOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ createdBy: activeUserTwoId })
+		.expect(400);
+	const contract = await Contract.findById(contractOneId);
+	expect(contract.createdBy).toEqual(contractOne.createdBy);
+});
+
+test('Should not update contract if invalid id', async () => {
+	await request(app)
+		.patch(`/contracts/${new mongoose.Types.ObjectId()}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ notes: 'This is a new note' })
+		.expect(400);
+});

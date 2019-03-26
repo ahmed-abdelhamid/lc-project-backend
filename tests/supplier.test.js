@@ -117,6 +117,6 @@ test('Should not update supplier if invalid id', async () => {
 	await request(app)
 		.patch(`/suppliers/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ createdBy: activeUserTwoId })
+		.send({ notes: 'This is a new note' })
 		.expect(400);
 });

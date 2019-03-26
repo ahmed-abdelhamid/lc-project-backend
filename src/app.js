@@ -1,7 +1,7 @@
 const express = require('express');
 require('./db/mongoose');
 const userRouter = require('./routers/userRouters');
-const supplierRouter = require('./routers/supplierRouter');
+const supplierRouter = require('./routers/supplierRouters');
 const contractRouter = require('./routers/contractRouters');
 
 const app = express();

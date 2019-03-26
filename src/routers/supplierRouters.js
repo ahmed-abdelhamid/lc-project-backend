@@ -74,6 +74,9 @@ router.patch(
 				new: true,
 				runValidators: true
 			});
+			if (!supplier) {
+				throw new Error();
+			}
 			res.send(supplier);
 		} catch (e) {
 			res.status(400).send(e);

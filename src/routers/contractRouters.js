@@ -80,5 +80,31 @@ router.get('/users/:userId/contracts', auth(), async ({ params }, res) => {
 });
 
 // Update contract
+router.patch(
+	'/contracts/:id',
+	auth({ canRegister: true }),
+	async ({ params, body }, res) => {
+		const updates = Object.keys(body);
+		const allowedUpdates = ['title', 'soc', 'duration', 'notes', 'supplierId'];
+		const isValidOperation = updates.every(update =>
+			allowedUpdates.includes(update)
+		);
+		if (!isValidOperation) {
+			return res.status(400).send({ error: 'Invalid Updates' });
+		}
+		try {
+			const contract = await Contract.findByIdAndUpdate(params.id, body, {
+				new: true,
+				runValidators: true
+			});
+			if (!contract) {
+				throw new Error();
+			}
+			res.send(contract);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	}
+);
 
 module.exports = router;
