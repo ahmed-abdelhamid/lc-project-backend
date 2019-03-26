@@ -1,5 +1,6 @@
 const express = require('express');
 const Supplier = require('../models/supplierModel');
+const User = require('../models/userModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -38,6 +39,20 @@ router.get('/suppliers/:id', auth(), async ({ params }, res) => {
 		res.send(supplier);
 	} catch (e) {
 		res.status(500).send();
+	}
+});
+
+// Get suppliers created by specific user
+router.get('/users/:userId/suppliers', auth(), async ({ params }, res) => {
+	try {
+		const user = await User.findById(params.userId);
+		if (!user) {
+			throw new Error();
+		}
+		const suppliers = await Supplier.find({ createdBy: params.userId });
+		res.send(suppliers);
+	} catch (e) {
+		res.status(404).send();
 	}
 });
 

@@ -72,6 +72,26 @@ test('Should not find supplier if wrong id', async () => {
 });
 
 ///////////////////////////////////////////////////////////////////////////////
+/////////  TESTS RELATED TO FIND SUPPLIERS CREATED BY SPECIFIC USER  //////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find all suppliers created by a user', async () => {
+	const { body } = await request(app)
+		.get(`/users/${activeUserTwoId}/suppliers`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body).toHaveLength(1);
+});
+
+test('Should not find any suppliers created by fake user id', async () => {
+	await request(app)
+		.get(`/users/${new mongoose.Types.ObjectId()}/suppliers`)
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(404);
+});
+
+///////////////////////////////////////////////////////////////////////////////
 ////////////////  TESTS RELATED TO UPDATE SUPPLIER BY ID  /////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should update supplier by id', async () => {
