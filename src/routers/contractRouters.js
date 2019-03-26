@@ -22,9 +22,21 @@ router.post(
 	}
 );
 
-// Read all contracts
+// Get all contracts
+router.get('/contracts', auth(), async (req, res) => {
+	try {
+		const contracts = await Contract.find();
+		res.send(contracts);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
 
 // Get contract by ID
+
+// Get contracts created by specific user
+
+// Get contracts for specific supplier
 
 // Update contract
 

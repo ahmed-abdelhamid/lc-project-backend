@@ -5,6 +5,7 @@ const Contract = require('../src/models/contractModel');
 const {
 	adminId,
 	admin,
+	activeUserOne,
 	supplierOneId,
 	setupDatabase
 } = require('./fixtures/db');
@@ -33,4 +34,16 @@ test('Should not create new contract if wrong supplier id', async () => {
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ title: 'New Contract', amount: 5000, duration: 'One Month' })
 		.expect(400);
+});
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////  TESTS RELATED TO GET ALL CONTRACTS  //////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should find all contracts', async () => {
+	const { body } = await request(app)
+		.get('/contracts')
+		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
+		.send()
+		.expect(200);
+	expect(body).toHaveLength(5);
 });

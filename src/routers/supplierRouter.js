@@ -25,7 +25,7 @@ router.get('/suppliers', auth(), async (req, res) => {
 		const suppliers = await Supplier.find();
 		res.send(suppliers);
 	} catch (e) {
-		res.status(404).send();
+		res.status(500).send();
 	}
 });
 
