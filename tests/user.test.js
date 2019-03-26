@@ -1,4 +1,5 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const app = require('../src/app');
 const User = require('../src/models/userModel');
@@ -149,7 +150,7 @@ test('Should not find user by id if not admin', async () => {
 
 test('Should not find user by id if wrong id used', async () => {
 	await request(app)
-		.get('/users/abc123')
+		.get(`/users/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(404);
@@ -264,10 +265,10 @@ test('Shouldn\'t update user by id if not authenticated', async () => {
 
 test('Shouldn\'t update user by id if invalid id', async () => {
 	await request(app)
-		.patch('/users/abc123')
+		.patch(`/users/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ canAddRequest: true })
-		.expect(400);
+		.send({ canAdd: true })
+		.expect(404);
 });
 
 test('Shouldn\'t update user by id if invalid update', async () => {
@@ -337,9 +338,9 @@ test('Should not archive user if not authenticated', async () => {
 	expect(user.status).toEqual('active');
 });
 
-test('Should generate 404 error if wrong id', async () => {
+test('Should not archive user if wrong id', async () => {
 	await request(app)
-		.patch('/users/abc123/archive')
+		.patch(`/users/${new mongoose.Types.ObjectId()}/archive`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(404);
@@ -377,9 +378,9 @@ test('Should not activate user if not authenticated', async () => {
 	expect(user.status).toEqual('archived');
 });
 
-test('Should generate 404 error if wrong id', async () => {
+test('Should not activate user if wrong id', async () => {
 	await request(app)
-		.patch('/users/abc123/activate')
+		.patch(`/users/${new mongoose.Types.ObjectId()}/activate`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(404);

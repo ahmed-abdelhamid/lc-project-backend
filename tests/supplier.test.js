@@ -1,4 +1,5 @@
 const request = require('supertest');
+const mongoose = require('mongoose');
 const app = require('../src/app');
 const Supplier = require('../src/models/supplierModel');
 const {
@@ -62,9 +63,9 @@ test('Should find supplier by id', async () => {
 	expect(body.name).toEqual(supplierOne.name);
 });
 
-test('Should not find supplier of wrong id', async () => {
+test('Should not find supplier if wrong id', async () => {
 	await request(app)
-		.get('/suppliers/abc123')
+		.get(`/suppliers/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
@@ -90,4 +91,12 @@ test('Should not update supplier if invalid update', async () => {
 		.expect(400);
 	const supplier = await Supplier.findById(supplierOneId);
 	expect(supplier.createdBy).toEqual(supplierOne.createdBy);
+});
+
+test('Should not update supplier if invalid id', async () => {
+	await request(app)
+		.patch(`/suppliers/${new mongoose.Types.ObjectId()}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ createdBy: activeUserTwoId })
+		.expect(400);
 });

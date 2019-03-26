@@ -32,9 +32,12 @@ router.get('/suppliers', auth(), async (req, res) => {
 router.get('/suppliers/:id', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.id);
+		if (!supplier) {
+			return res.status(404).send();
+		}
 		res.send(supplier);
 	} catch (e) {
-		res.status(404).send();
+		res.status(500).send();
 	}
 });
 

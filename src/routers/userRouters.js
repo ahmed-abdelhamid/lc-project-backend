@@ -36,9 +36,12 @@ router.get('/users/:id', auth({ auth: 'admin' }), async (req, res) => {
 	const _id = req.params.id;
 	try {
 		const user = await User.findById(_id);
+		if (!user) {
+			return res.status(404).send();
+		}
 		res.send(user);
 	} catch (e) {
-		res.status(404).send(e);
+		res.status(500).send(e);
 	}
 });
 
@@ -87,6 +90,9 @@ router.patch(
 				new: true,
 				runValidators: true
 			});
+			if (!user) {
+				return res.status(404).send();
+			}
 			res.send(user);
 		} catch (e) {
 			res.status(400).send(e);
@@ -100,7 +106,7 @@ router.patch(
 	auth({ auth: 'admin' }),
 	async ({ params }, res) => {
 		try {
-			await User.findByIdAndUpdate(
+			const user = await User.findByIdAndUpdate(
 				params.id,
 				{
 					status: 'archived',
@@ -110,11 +116,14 @@ router.patch(
 					canRegister: false,
 					canApprove: false
 				},
-				{ runValidators: true }
+				{ new: true, runValidators: true }
 			);
-			res.send();
+			if (!user) {
+				return res.status(404).send();
+			}
+			res.send(user);
 		} catch (e) {
-			res.status(404).send(e);
+			res.status(500).send(e);
 		}
 	}
 );
@@ -125,14 +134,17 @@ router.patch(
 	auth({ auth: 'admin' }),
 	async ({ params }, res) => {
 		try {
-			await User.findByIdAndUpdate(
+			const user = await User.findByIdAndUpdate(
 				params.id,
 				{ status: 'active' },
-				{ runValidators: true }
+				{ new: true, runValidators: true }
 			);
-			res.send();
+			if (!user) {
+				return res.status(404).send();
+			}
+			res.send(user);
 		} catch (e) {
-			res.status(404).send(e);
+			res.status(500).send(e);
 		}
 	}
 );
