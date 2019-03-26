@@ -1,6 +1,7 @@
 const express = require('express');
 const Contract = require('../models/contractModel');
 const User = require('../models/userModel');
+const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -19,6 +20,24 @@ router.post(
 			res.status(201).send(contract);
 		} catch (e) {
 			res.status(400).send(e);
+		}
+	}
+);
+
+// Get contracts for specific supplier
+router.get(
+	'/suppliers/:supplierId/contracts',
+	auth(),
+	async ({ params }, res) => {
+		try {
+			const supplier = await Supplier.findById(params.supplierId);
+			if (!supplier) {
+				throw new Error();
+			}
+			await supplier.populate('contracts').execPopulate();
+			res.send(supplier.contracts);
+		} catch (e) {
+			res.status(404).send();
 		}
 	}
 );
@@ -59,8 +78,6 @@ router.get('/users/:userId/contracts', auth(), async ({ params }, res) => {
 		res.status(404).send();
 	}
 });
-
-// Get contracts for specific supplier
 
 // Update contract
 
