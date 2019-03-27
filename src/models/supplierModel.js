@@ -22,6 +22,12 @@ supplierSchema.virtual('contracts', {
 	foreignField: 'supplierId'
 });
 
+supplierSchema.virtual('lcs', {
+	ref: 'Lc',
+	localField: '_id',
+	foreignField: 'supplierId'
+});
+
 const Supplier = mongoose.model('Supplier', supplierSchema);
 
 module.exports = Supplier;
