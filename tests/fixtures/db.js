@@ -1,6 +1,7 @@
 const User = require('../../src/models/userModel');
 const Supplier = require('../../src/models/supplierModel');
 const Contract = require('../../src/models/contractModel');
+const Appendix = require('../../src/models/appendixModel');
 const {
 	adminId,
 	admin,
@@ -33,11 +34,20 @@ const {
 	contractFiveId,
 	contractFive
 } = require('./contracts');
+const {
+	appendixOneId,
+	appendixOne,
+	appendixTwoId,
+	appendixTwo,
+	appendixThreeId,
+	appendixThree
+} = require('./appendixes');
 
 const setupDatabase = async () => {
 	await User.deleteMany();
 	await Supplier.deleteMany();
 	await Contract.deleteMany();
+	await Appendix.deleteMany();
 
 	await new User(admin).save();
 	await new User(activeUserOne).save();
@@ -52,6 +62,9 @@ const setupDatabase = async () => {
 	await new Contract(contractThree).save();
 	await new Contract(contractFour).save();
 	await new Contract(contractFive).save();
+	await new Appendix(appendixOne).save();
+	await new Appendix(appendixTwo).save();
+	await new Appendix(appendixThree).save();
 };
 
 module.exports = {
@@ -81,5 +94,11 @@ module.exports = {
 	contractFour,
 	contractFiveId,
 	contractFive,
+	appendixOneId,
+	appendixOne,
+	appendixTwoId,
+	appendixTwo,
+	appendixThreeId,
+	appendixThree,
 	setupDatabase
 };

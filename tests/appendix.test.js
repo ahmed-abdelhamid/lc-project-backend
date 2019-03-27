@@ -1,142 +1,141 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../src/app');
-const Contract = require('../src/models/contractModel');
+const Appendix = require('../src/models/appendixModel');
 const {
 	adminId,
 	admin,
 	activeUserOne,
 	activeUserTwoId,
-	supplierOneId,
-	supplierThreeId,
 	contractOneId,
-	contractOne,
+	appendixOneId,
+	appendixOne,
 	setupDatabase
 } = require('./fixtures/db');
 
 beforeEach(setupDatabase);
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////  TESTS RELATED TO CREATE NEW CONTRACT  ////////////////////
+///////////////////  TESTS RELATED TO CREATE NEW APPENDIX  ////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should create new contract', async () => {
+test('Should create new appendix', async () => {
 	const { body } = await request(app)
-		.post(`/suppliers/${supplierOneId}/contracts`)
+		.post(`/contracts/${contractOneId}/appendixes`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ title: 'New Contract', amount: 5000, duration: 'One Month' })
+		.send({ title: 'New Appendix', amount: 5000, duration: 'One Month' })
 		.expect(201);
 	expect(body).toMatchObject({
 		amount: 5000,
 		createdBy: adminId.toString(),
-		supplierId: supplierOneId.toString()
+		contractId: contractOneId.toString()
 	});
 });
 
-test('Should not create new contract if wrong supplier id', async () => {
+test('Should not create new appendix if wrong contract id', async () => {
 	await request(app)
-		.post(`/suppliers/${new mongoose.Types.ObjectId()}/contracts`)
+		.post(`/contracts/${new mongoose.Types.ObjectId()}/appendixes`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ title: 'New Contract', amount: 5000, duration: 'One Month' })
 		.expect(400);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////  TESTS RELATED TO GET ALL CONTRACTS  //////////////////////
+///////////////////  TESTS RELATED TO GET ALL APPENDIXES  //////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should find all contracts', async () => {
+test('Should find all appendixes', async () => {
 	const { body } = await request(app)
-		.get('/contracts')
+		.get('/appendixes')
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(5);
+	expect(body).toHaveLength(3);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-////////////////  TESTS RELATED TO GET A CONTRACT BY ID  //////////////////////
+////////////////  TESTS RELATED TO GET A APPENDIX BY ID  //////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 test('Should find a contract by id', async () => {
 	const { body } = await request(app)
-		.get(`/contracts/${contractOneId}`)
+		.get(`/appendixes/${appendixOneId}`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body.name).toEqual(contractOne.name);
+	expect(body.name).toEqual(appendixOne.name);
 });
 
-test('Should not find a contract with wrong id', async () => {
+test('Should not find appendix with wrong id', async () => {
 	await request(app)
-		.get(`/contracts/${new mongoose.Types.ObjectId()}`)
+		.get(`/appendixes/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send()
 		.expect(404);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-/////////  TESTS RELATED TO FIND CONTRACTS CREATED BY SPECIFIC USER  //////////
+/////////  TESTS RELATED TO FIND APPENDIXES CREATED BY SPECIFIC USER  //////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should find all contracts created by a user', async () => {
+test('Should find all appendixes created by a user', async () => {
 	const { body } = await request(app)
-		.get(`/users/${activeUserTwoId}/contracts`)
+		.get(`/users/${activeUserTwoId}/appendixes`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(2);
+	expect(body).toHaveLength(1);
 });
 
-test('Should not find any suppliers created by fake user id', async () => {
+test('Should not find any appendixes created by fake user id', async () => {
 	await request(app)
-		.get(`/users/${new mongoose.Types.ObjectId()}/contracts`)
+		.get(`/users/${new mongoose.Types.ObjectId()}/appendixes`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-/////////  TESTS RELATED TO FIND CONTRACTS FOR SPECIFIC SUPPLIER  /////////////
+////////  TESTS RELATED TO FIND APPENDIXES FOR SPECIFIC CONTRACT  /////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should find all contracts for a supplier', async () => {
+test('Should find all appendixes for a contract', async () => {
 	const { body } = await request(app)
-		.get(`/suppliers/${supplierThreeId}/contracts`)
+		.get(`/contracts/${contractOneId}/appendixes`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(2);
+	expect(body).toHaveLength(1);
 });
 
-test('Should not find any contracts with fake suppliers ', async () => {
+test('Should not find any appendixes with a fake contract', async () => {
 	await request(app)
-		.get(`/suppliers/${new mongoose.Types.ObjectId()}/contracts`)
+		.get(`/contracts/${new mongoose.Types.ObjectId()}/appendixes`)
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
-////////////////  TESTS RELATED TO UPDATE CONTRACT BY ID  /////////////////////
+////////////////  TESTS RELATED TO UPDATE APPENDIX BY ID  /////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should update contract by id', async () => {
+test('Should update appendix by id', async () => {
 	const { body } = await request(app)
-		.patch(`/contracts/${contractOneId}`)
+		.patch(`/appendixes/${appendixOneId}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ notes: 'This is a new note' })
 		.expect(200);
 	expect(body.notes).toEqual('This is a new note');
 });
 
-test('Should not update contract if invalid update', async () => {
+test('Should not update appendix if invalid update', async () => {
 	await request(app)
-		.patch(`/contracts/${contractOneId}`)
+		.patch(`/appendixes/${appendixOneId}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ createdBy: activeUserTwoId })
 		.expect(400);
-	const contract = await Contract.findById(contractOneId);
-	expect(contract.createdBy).toEqual(contractOne.createdBy);
+	const appendix = await Appendix.findById(appendixOneId);
+	expect(appendix.createdBy).toEqual(appendixOne.createdBy);
 });
 
-test('Should not update contract if invalid id', async () => {
+test('Should not update appendix if invalid id', async () => {
 	await request(app)
-		.patch(`/contracts/${new mongoose.Types.ObjectId()}`)
+		.patch(`/appendixes/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ notes: 'This is a new note' })
 		.expect(400);

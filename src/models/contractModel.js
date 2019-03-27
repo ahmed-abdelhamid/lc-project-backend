@@ -8,8 +8,16 @@ const contractSchema = new mongoose.Schema(
 		amount: { type: Number, required: true, min: 0 },
 		duration: { type: String, required: true },
 		notes: { type: String },
-		supplierId: { type: mongoose.Schema.Types.ObjectId, ref: 'Supplier' },
-		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+		supplierId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'Supplier'
+		},
+		createdBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'User'
+		}
 	},
 	{ timestamps: true }
 );
