@@ -1,15 +1,30 @@
 const mongoose = require('mongoose');
 const Contract = require('./contractModel');
 
+// Exact as CONTRACT
 const appendixSchema = new mongoose.Schema(
 	{
-		title: { type: String, required: true },
-		soc: { type: String },
+		title: { type: String, required: true, trim: true },
+		date: { type: Date, required: true },
+		soc: { type: String, required: true, trim: true },
 		amount: { type: Number, required: true, min: 0 },
-		duration: { type: String, required: true },
-		notes: { type: String },
-		contractId: { type: mongoose.Schema.Types.ObjectId, ref: 'Contract' },
-		createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+		duration: { type: String, required: true, trim: true },
+		notes: { type: String, trim: true },
+		state: {
+			type: String,
+			enum: ['active', 'archived', 'deleted'],
+			default: 'active'
+		},
+		contractId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Contract',
+			required: true
+		},
+		createdBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+			required: true
+		}
 	},
 	{ timestamps: true }
 );

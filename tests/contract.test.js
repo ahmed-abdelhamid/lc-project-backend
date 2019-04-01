@@ -23,7 +23,13 @@ test('Should create new contract', async () => {
 	const { body } = await request(app)
 		.post(`/suppliers/${supplierOneId}/contracts`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ title: 'New Contract', amount: 5000, duration: 'One Month' })
+		.send({
+			title: 'New Contract',
+			amount: 5000,
+			duration: 'One Month',
+			date: new Date(),
+			soc: 'soc'
+		})
 		.expect(201);
 	expect(body).toMatchObject({
 		amount: 5000,
@@ -68,26 +74,6 @@ test('Should not find a contract with wrong id', async () => {
 	await request(app)
 		.get(`/contracts/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(404);
-});
-
-///////////////////////////////////////////////////////////////////////////////
-/////////  TESTS RELATED TO FIND CONTRACTS CREATED BY SPECIFIC USER  //////////
-///////////////////////////////////////////////////////////////////////////////
-test('Should find all contracts created by a user', async () => {
-	const { body } = await request(app)
-		.get(`/users/${activeUserTwoId}/contracts`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send()
-		.expect(200);
-	expect(body).toHaveLength(2);
-});
-
-test('Should not find any suppliers created by fake user id', async () => {
-	await request(app)
-		.get(`/users/${new mongoose.Types.ObjectId()}/contracts`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
 });

@@ -1,6 +1,6 @@
 const express = require('express');
 const Supplier = require('../models/supplierModel');
-const User = require('../models/userModel');
+// const User = require('../models/userModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -43,18 +43,18 @@ router.get('/suppliers/:id', auth(), async ({ params }, res) => {
 });
 
 // Get suppliers created by specific user
-router.get('/users/:userId/suppliers', auth(), async ({ params }, res) => {
-	try {
-		const user = await User.findById(params.userId);
-		if (!user) {
-			throw new Error();
-		}
-		await user.populate('suppliers').execPopulate();
-		res.send(user.suppliers);
-	} catch (e) {
-		res.status(404).send();
-	}
-});
+// router.get('/users/:userId/suppliers', auth(), async ({ params }, res) => {
+// 	try {
+// 		const user = await User.findById(params.userId);
+// 		if (!user) {
+// 			throw new Error();
+// 		}
+// 		await user.populate('suppliers').execPopulate();
+// 		res.send(user.suppliers);
+// 	} catch (e) {
+// 		res.status(404).send();
+// 	}
+// });
 
 // Update supplier data
 router.patch(
@@ -62,7 +62,14 @@ router.patch(
 	auth({ canRegister: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);
-		const allowedUpdates = ['name', 'specialization', 'notes'];
+		const allowedUpdates = [
+			'name',
+			'specialization',
+			'notes',
+			'vatRegisteration',
+			'crRegisteration',
+			'state'
+		];
 		const isValidOperation = updates.every(update =>
 			allowedUpdates.includes(update)
 		);

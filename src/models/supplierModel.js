@@ -2,11 +2,17 @@ const mongoose = require('mongoose');
 
 const supplierSchema = new mongoose.Schema(
 	{
-		name: { type: String, required: true, unique: true, trim: true },
+		name: { type: String, required: true, trim: true },
 		specialization: { type: String, required: true, trim: true },
-		vatRegisteration: { type: Number, unique: true, required: true },
-		rcRegisteration: { type: Number, unique: true, required: true },
+		vatRegisteration: {
+			type: Number,
+			unique: true,
+			required: true,
+			trim: true
+		},
+		crRegisteration: { type: Number, unique: true, required: true, trim: true },
 		notes: { type: String, trim: true },
+		state: { type: String, enum: ['active', 'archived'], default: 'active' },
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,

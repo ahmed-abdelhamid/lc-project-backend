@@ -14,13 +14,13 @@ const lcSchema = new mongoose.Schema({
 	},
 	issuer: { type: String, required: true },
 	bankName: { type: String, required: true },
-	number: { type: Number },
+	number: { type: String, required: true, unique: true },
 	openingCommission: { type: Number },
 	serviceCharge: { type: Number },
 	editCommission: { type: Number },
-	issueDate: { type: Date },
-	expiryDate: { type: Date },
-	amount: { type: Number },
+	issueDate: { type: Date, required: true },
+	expiryDate: { type: Date, required: true },
+	amount: { type: Number, required: true },
 	notes: { type: String },
 	previouslyPaidInCash: { type: Number },
 	previouslyPaidWithInvoice: { type: Number }
@@ -31,7 +31,7 @@ lcSchema.pre('save', async function(next) {
 
 	const supplier = await Supplier.findById(lc.supplierId);
 	if (!supplier) {
-		throw new Error({ error: 'Contract not found' });
+		throw new Error({ error: 'Supplier not found' });
 	}
 
 	next();

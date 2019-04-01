@@ -33,7 +33,7 @@ test('Should signup new user', async () => {
 	// Check response
 	expect(body).toMatchObject({
 		user: {
-			status: 'new',
+			state: 'new',
 			canAdd: false,
 			auth: 'user'
 		},
@@ -88,14 +88,14 @@ test('Shouldn\'t signup new user with invalid phone number', async () => {
 		.expect(400);
 });
 
-test('Shouldn\'t signup new user with invalid status value', async () => {
+test('Shouldn\'t signup new user with invalid state value', async () => {
 	await request(app)
 		.post('/users')
 		.send({
 			name: 'Ahmed Abdelhamid',
 			email: 'ahmed@example.com',
 			password: 'Ahmed123',
-			status: 'Invalid Value'
+			state: 'Invalid Value'
 		})
 		.expect(400);
 });
@@ -244,6 +244,17 @@ test('Should update user by id', async () => {
 	expect(body.canAdd).toBeTruthy();
 });
 
+test('Should delete tokens if user archived', async () => {
+	await request(app)
+		.patch(`/users/${activeUserOneId}`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ state: 'archived' })
+		.expect(200);
+	const user = await User.findById(activeUserOne);
+	expect(user.state).toEqual('archived');
+	expect(user.tokens).toHaveLength(0);
+});
+
 test('Shouldn\'t update user by id if not admin', async () => {
 	await request(app)
 		.patch(`/users/${activeUserOneId}`)
@@ -275,10 +286,10 @@ test('Shouldn\'t update user by id if invalid update', async () => {
 	await request(app)
 		.patch(`/users/${activeUserOneId}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ status: 'archive' })
+		.send({ state: 'invalid Value' })
 		.expect(400);
 	const user = await User.findById(activeUserOneId);
-	expect(user.status).toEqual('active');
+	expect(user.state).toEqual('active');
 });
 
 test('Should n\'t update user if existing email', async () => {
@@ -303,87 +314,6 @@ test('Should n\'t update user if invalid password', async () => {
 	const user = await User.findById(activeUserOneId);
 	const passwordMatch = await bcrypt.compare('Smith', user.password);
 	expect(passwordMatch).toBeFalsy();
-});
-
-///////////////////////////////////////////////////////////////////////////////
-//////////////////////  TESTS RELATED TO ARCHIVE USER  ////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-test('Should archive user if admin', async () => {
-	await request(app)
-		.patch(`/users/${activeUserOneId}/archive`)
-		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(200);
-	const user = await User.findById(activeUserOne);
-	expect(user.status).toEqual('archived');
-	expect(user.tokens).toHaveLength(0);
-});
-
-test('Should not archive user if not admin', async () => {
-	await request(app)
-		.patch(`/users/${activeUserOneId}/archive`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send()
-		.expect(401);
-	const user = await User.findById(activeUserOne);
-	expect(user.status).toEqual('active');
-});
-
-test('Should not archive user if not authenticated', async () => {
-	await request(app)
-		.patch(`/users/${activeUserOneId}/archive`)
-		.send()
-		.expect(401);
-	const user = await User.findById(activeUserOne);
-	expect(user.status).toEqual('active');
-});
-
-test('Should not archive user if wrong id', async () => {
-	await request(app)
-		.patch(`/users/${new mongoose.Types.ObjectId()}/archive`)
-		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(404);
-});
-
-///////////////////////////////////////////////////////////////////////////////
-/////////////////////  TESTS RELATED TO ACTIVATE USER  ////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-test('Should activate user if admin', async () => {
-	await request(app)
-		.patch(`/users/${archivedUserOneId}/activate`)
-		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(200);
-	const user = await User.findById(archivedUserOne);
-	expect(user.status).toEqual('active');
-});
-
-test('Should not activate user if not admin', async () => {
-	await request(app)
-		.patch(`/users/${archivedUserOneId}/activate`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send()
-		.expect(401);
-	const user = await User.findById(archivedUserOne);
-	expect(user.status).toEqual('archived');
-});
-
-test('Should not activate user if not authenticated', async () => {
-	await request(app)
-		.patch(`/users/${archivedUserOneId}/activate`)
-		.send()
-		.expect(401);
-	const user = await User.findById(archivedUserOne);
-	expect(user.status).toEqual('archived');
-});
-
-test('Should not activate user if wrong id', async () => {
-	await request(app)
-		.patch(`/users/${new mongoose.Types.ObjectId()}/activate`)
-		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(404);
 });
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -11,7 +11,7 @@ const admin = {
 	canRequest: true,
 	canRegister: true,
 	canApprove: true,
-	status: 'active',
+	state: 'active',
 	auth: 'admin',
 	tokens: [{ token: jwt.sign({ _id: adminId }, process.env.JWT_SECRET) }]
 };
@@ -22,7 +22,7 @@ const activeUserOne = {
 	name: 'Mike',
 	email: 'mike@example.com',
 	password: 'Mike123456',
-	status: 'active',
+	state: 'active',
 	tokens: [
 		{ token: jwt.sign({ _id: activeUserOneId }, process.env.JWT_SECRET) }
 	]
@@ -34,7 +34,7 @@ const activeUserTwo = {
 	name: 'Hany',
 	email: 'hany@example.com',
 	password: 'Hany123456',
-	status: 'active',
+	state: 'active',
 	tokens: [
 		{ token: jwt.sign({ _id: activeUserOneId }, process.env.JWT_SECRET) }
 	]
@@ -46,7 +46,7 @@ const archivedUserOne = {
 	name: 'John',
 	email: 'john@example.com',
 	password: 'John123456',
-	status: 'archived'
+	state: 'archived'
 };
 
 module.exports = {

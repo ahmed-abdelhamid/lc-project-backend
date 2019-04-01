@@ -1,6 +1,6 @@
 const express = require('express');
 const Appendix = require('../models/appendixModel');
-const User = require('../models/userModel');
+// const User = require('../models/userModel');
 const Contract = require('../models/contractModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
@@ -66,18 +66,18 @@ router.get('/appendixes/:id', auth(), async ({ params }, res) => {
 });
 
 // Get appendixes created by specific user
-router.get('/users/:userId/appendixes', auth(), async ({ params }, res) => {
-	try {
-		const user = await User.findById(params.userId);
-		if (!user) {
-			throw new Error();
-		}
-		await user.populate('appendixes').execPopulate();
-		res.send(user.appendixes);
-	} catch (e) {
-		res.status(404).send();
-	}
-});
+// router.get('/users/:userId/appendixes', auth(), async ({ params }, res) => {
+// 	try {
+// 		const user = await User.findById(params.userId);
+// 		if (!user) {
+// 			throw new Error();
+// 		}
+// 		await user.populate('appendixes').execPopulate();
+// 		res.send(user.appendixes);
+// 	} catch (e) {
+// 		res.status(404).send();
+// 	}
+// });
 
 // Update appendix
 router.patch(
@@ -91,7 +91,9 @@ router.patch(
 			'duration',
 			'amount',
 			'notes',
-			'contractId'
+			'contractId',
+			'date',
+			'state'
 		];
 		const isValidOperation = updates.every(update =>
 			allowedUpdates.includes(update)

@@ -44,7 +44,7 @@ const userSchema = new mongoose.Schema(
 		canAdd: { type: Boolean, default: false },
 		canRegister: { type: Boolean, default: false },
 		canApprove: { type: Boolean, default: false },
-		status: {
+		state: {
 			type: String,
 			enum: ['new', 'blocked', 'active', 'archived'],
 			default: 'new'
@@ -102,14 +102,18 @@ userSchema.pre('save', async function(next) {
 
 // Find User By Credentials
 userSchema.statics.findByCredentials = async (email, password) => {
-	const user = await User.findOne({ email, status: { $ne: 'archived' } });
+	const user = await User.findOne({ email });
 	if (!user) {
-		throw new Error('Unable to login');
+		throw new Error('Invalid email or password');
+	}
+
+	if (user.state === 'archived') {
+		throw new Error('Your account is archived, please contact administrator');
 	}
 
 	const isMatch = await bcrypt.compare(password, user.password);
 	if (!isMatch) {
-		throw new Error('Unable to login');
+		throw new Error('Invalid email or password');
 	}
 
 	return user;

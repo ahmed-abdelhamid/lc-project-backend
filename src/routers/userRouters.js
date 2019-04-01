@@ -69,6 +69,7 @@ router.patch(
 	'/users/:id',
 	auth({ auth: 'admin' }),
 	async ({ params, body }, res) => {
+		let user;
 		const _id = params.id;
 		const updates = Object.keys(body);
 		const allowedUpdates = [
@@ -77,7 +78,8 @@ router.patch(
 			'canRequest',
 			'canApprove',
 			'canRegister',
-			'auth'
+			'auth',
+			'state'
 		];
 		const isValidOperation = updates.every(update =>
 			allowedUpdates.includes(update)
@@ -86,12 +88,19 @@ router.patch(
 			return res.status(400).send({ error: 'Invalid Updates' });
 		}
 		try {
-			const user = await User.findByIdAndUpdate(_id, body, {
+			user = await User.findByIdAndUpdate(_id, body, {
 				new: true,
 				runValidators: true
 			});
 			if (!user) {
 				return res.status(404).send();
+			}
+			if (user.state === 'archived') {
+				user = await User.findByIdAndUpdate(
+					_id,
+					{ tokens: [] },
+					{ new: true, runValidators: true }
+				);
 			}
 			res.send(user);
 		} catch (e) {
@@ -100,54 +109,50 @@ router.patch(
 	}
 );
 
-// Archive user
-router.patch(
-	'/users/:id/archive',
-	auth({ auth: 'admin' }),
-	async ({ params }, res) => {
-		try {
-			const user = await User.findByIdAndUpdate(
-				params.id,
-				{
-					status: 'archived',
-					tokens: [],
-					canRequest: false,
-					canAdd: false,
-					canRegister: false,
-					canApprove: false
-				},
-				{ new: true, runValidators: true }
-			);
-			if (!user) {
-				return res.status(404).send();
-			}
-			res.send(user);
-		} catch (e) {
-			res.status(500).send(e);
-		}
-	}
-);
+// Archive user (Will be DELETED)
+// router.patch(
+// 	'/users/:id/archive',
+// 	auth({ auth: 'admin' }),
+// 	async ({ params }, res) => {
+// 		try {
+// 			const user = await User.findByIdAndUpdate(
+// 				params.id,
+// 				{
+// 					state: 'archived',
+// 					tokens: []
+// 				},
+// 				{ new: true, runValidators: true }
+// 			);
+// 			if (!user) {
+// 				return res.status(404).send();
+// 			}
+// 			res.send(user);
+// 		} catch (e) {
+// 			res.status(500).send(e);
+// 		}
+// 	}
+// );
 
-// Activate user
-router.patch(
-	'/users/:id/activate',
-	auth({ auth: 'admin' }),
-	async ({ params }, res) => {
-		try {
-			const user = await User.findByIdAndUpdate(
-				params.id,
-				{ status: 'active' },
-				{ new: true, runValidators: true }
-			);
-			if (!user) {
-				return res.status(404).send();
-			}
-			res.send(user);
-		} catch (e) {
-			res.status(500).send(e);
-		}
-	}
-);
+// Activate user (Will be DELETED)
+// router.patch(
+// 	'/users/:id/activate',
+// 	auth({ auth: 'admin' }),
+// 	async ({ params }, res) => {
+// 		try {
+// 			const user = await User.findByIdAndUpdate(
+// 				params.id,
+// 				{ state: 'active' },
+// 				{ new: true, runValidators: true }
+// 			);
+// 			if (!user) {
+// 				return res.status(404).send();
+// 			}
+// 			res.send(user);
+// 		} catch (e) {
+// 			res.status(500).send(e);
+// 		}
+// 	}
+// );
 
 // Login existing user
 router.post('/users/login', async (req, res) => {

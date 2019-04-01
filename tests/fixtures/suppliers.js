@@ -11,7 +11,7 @@ const supplierOne = {
 	name: 'Supplier One',
 	specialization: 'Specialization One',
 	vatRegisteration: 1,
-	rcRegisteration: 1,
+	crRegisteration: 1,
 	createdBy: activeUserOneId
 };
 
@@ -21,7 +21,7 @@ const supplierTwo = {
 	name: 'Supplier Two',
 	specialization: 'Specialization Two',
 	vatRegisteration: 2,
-	rcRegisteration: 2,
+	crRegisteration: 2,
 	createdBy: activeUserOneId
 };
 
@@ -31,7 +31,7 @@ const supplierThree = {
 	name: 'Supplier Three',
 	specialization: 'Specialization Three',
 	vatRegisteration: 3,
-	rcRegisteration: 3,
+	crRegisteration: 3,
 	createdBy: activeUserTwoId
 };
 
@@ -41,7 +41,7 @@ const supplierFour = {
 	name: 'Supplier Four',
 	specialization: 'Specialization Four',
 	vatRegisteration: 4,
-	rcRegisteration: 4,
+	crRegisteration: 4,
 	createdBy: archivedUserOneId
 };
 

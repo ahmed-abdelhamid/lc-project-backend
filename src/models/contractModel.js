@@ -3,11 +3,17 @@ const Supplier = require('./supplierModel');
 
 const contractSchema = new mongoose.Schema(
 	{
-		title: { type: String, required: true },
-		soc: { type: String },
+		title: { type: String, required: true, trim: true },
+		date: { type: Date, required: true },
+		soc: { type: String, trim: true, required: true },
 		amount: { type: Number, required: true, min: 0 },
-		duration: { type: String, required: true },
-		notes: { type: String },
+		duration: { type: String, required: true, trim: true },
+		notes: { type: String, trim: true },
+		state: {
+			type: String,
+			enum: ['active', 'archived', 'deleted'],
+			default: 'active'
+		},
 		supplierId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,

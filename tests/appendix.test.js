@@ -22,7 +22,13 @@ test('Should create new appendix', async () => {
 	const { body } = await request(app)
 		.post(`/contracts/${contractOneId}/appendixes`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send({ title: 'New Appendix', amount: 5000, duration: 'One Month' })
+		.send({
+			title: 'New Appendix',
+			amount: 5000,
+			duration: 'One Month',
+			soc: 'soc',
+			date: new Date()
+		})
 		.expect(201);
 	expect(body).toMatchObject({
 		amount: 5000,
@@ -67,26 +73,6 @@ test('Should not find appendix with wrong id', async () => {
 	await request(app)
 		.get(`/appendixes/${new mongoose.Types.ObjectId()}`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
-		.send()
-		.expect(404);
-});
-
-///////////////////////////////////////////////////////////////////////////////
-/////////  TESTS RELATED TO FIND APPENDIXES CREATED BY SPECIFIC USER  //////////
-///////////////////////////////////////////////////////////////////////////////
-test('Should find all appendixes created by a user', async () => {
-	const { body } = await request(app)
-		.get(`/users/${activeUserTwoId}/appendixes`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
-		.send()
-		.expect(200);
-	expect(body).toHaveLength(1);
-});
-
-test('Should not find any appendixes created by fake user id', async () => {
-	await request(app)
-		.get(`/users/${new mongoose.Types.ObjectId()}/appendixes`)
-		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(404);
 });

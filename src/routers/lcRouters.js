@@ -6,7 +6,7 @@ const router = new express.Router();
 // Create new lc
 router.post(
 	'/suppliers/:supplierId/lcs',
-	auth({ canRegister: true }),
+	auth({ canAdd: true }),
 	async ({ params, body, user }, res) => {
 		const lc = new Lc({
 			...body,
@@ -48,7 +48,7 @@ router.get('/lcs/:id', auth(), async ({ params }, res) => {
 // Update lc by id
 router.patch(
 	'/lcs/:id',
-	auth({ canRegister: true }),
+	auth({ canAdd: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);
 		const allowedUpdates = [
@@ -87,7 +87,6 @@ router.patch(
 	}
 );
 
-// Get lcs for specific suppliers
-// Get appendixes created by specific user
+// Get lcs for specific suppliers (Create that)
 
 module.exports = router;
