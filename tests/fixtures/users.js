@@ -7,7 +7,7 @@ const admin = {
 	name: 'Admin',
 	email: 'admin@example.com',
 	password: 'Admin123',
-	cannAdd: true,
+	canAdd: true,
 	canRequest: true,
 	canRegister: true,
 	canApprove: true,

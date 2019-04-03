@@ -73,6 +73,12 @@ userSchema.virtual('appendixes', {
 	foreignField: 'createdBy'
 });
 
+userSchema.virtual('requests', {
+	ref: 'Request',
+	localField: '_id',
+	foreignField: 'requestedBy'
+});
+
 userSchema.virtual('lcs', {
 	ref: 'Lc',
 	localField: '_id',
@@ -119,7 +125,7 @@ userSchema.statics.findByCredentials = async (email, password) => {
 	return user;
 };
 
-// Genrete User Auth Tokens
+// Generate User Auth Tokens
 userSchema.methods.generateAuthToken = async function() {
 	const user = this;
 	const token = jwt.sign({ _id: user._id.toString() }, process.env.JWT_SECRET);

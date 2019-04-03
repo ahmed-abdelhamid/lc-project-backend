@@ -2,6 +2,7 @@ const User = require('../../src/models/userModel');
 const Supplier = require('../../src/models/supplierModel');
 const Contract = require('../../src/models/contractModel');
 const Appendix = require('../../src/models/appendixModel');
+const Request = require('../../src/models/requestModel');
 const Lc = require('../../src/models/lcModel');
 const {
 	adminId,
@@ -43,6 +44,18 @@ const {
 	appendixThreeId,
 	appendixThree
 } = require('./appendixes');
+const {
+	newRequestId,
+	newRequest,
+	approvedRequestId,
+	approvedRequest,
+	inprogressRequestId,
+	inprogressRequest,
+	inprogressRequestOneId,
+	inprogressRequestOne,
+	executedRequestId,
+	executedRequest
+} = require('./requests');
 const { lcOneId, lcOne } = require('./lcs');
 
 const setupDatabase = async () => {
@@ -50,6 +63,7 @@ const setupDatabase = async () => {
 	await Supplier.deleteMany();
 	await Contract.deleteMany();
 	await Appendix.deleteMany();
+	await Request.deleteMany();
 	await Lc.deleteMany();
 
 	await new User(admin).save();
@@ -68,6 +82,11 @@ const setupDatabase = async () => {
 	await new Appendix(appendixOne).save();
 	await new Appendix(appendixTwo).save();
 	await new Appendix(appendixThree).save();
+	await new Request(newRequest).save();
+	await new Request(approvedRequest).save();
+	await new Request(inprogressRequest).save();
+	await new Request(inprogressRequestOne).save();
+	await new Request(executedRequest).save();
 	await new Lc(lcOne).save();
 };
 
@@ -104,6 +123,16 @@ module.exports = {
 	appendixTwo,
 	appendixThreeId,
 	appendixThree,
+	newRequestId,
+	newRequest,
+	approvedRequestId,
+	approvedRequest,
+	inprogressRequestId,
+	inprogressRequest,
+	inprogressRequestOneId,
+	inprogressRequestOne,
+	executedRequestId,
+	executedRequest,
 	lcOneId,
 	lcOne,
 	setupDatabase

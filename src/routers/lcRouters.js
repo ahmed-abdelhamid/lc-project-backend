@@ -1,16 +1,18 @@
 const express = require('express');
 const Lc = require('../models/lcModel');
+const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new lc
 router.post(
-	'/suppliers/:supplierId/lcs',
+	'/requests/:requestId/lcs',
 	auth({ canAdd: true }),
 	async ({ params, body, user }, res) => {
+		const { requestId } = params;
 		const lc = new Lc({
 			...body,
-			supplierId: params.supplierId,
+			requestId,
 			createdBy: user._id
 		});
 		try {
@@ -87,6 +89,18 @@ router.patch(
 	}
 );
 
-// Get lcs for specific suppliers (Create that)
+// Get lcs for specific suppliers
+router.get('/suppliers/:supplierId/lcs', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.supplierId);
+		if (!supplier) {
+			throw new Error();
+		}
+		await supplier.populate('lcs').execPopulate();
+		res.send(supplier.lcs);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 module.exports = router;

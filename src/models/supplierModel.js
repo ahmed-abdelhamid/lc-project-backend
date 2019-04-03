@@ -28,6 +28,12 @@ supplierSchema.virtual('contracts', {
 	foreignField: 'supplierId'
 });
 
+supplierSchema.virtual('requests', {
+	ref: 'Request',
+	localField: '_id',
+	foreignField: 'supplierId'
+});
+
 supplierSchema.virtual('lcs', {
 	ref: 'Lc',
 	localField: '_id',
