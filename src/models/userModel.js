@@ -85,6 +85,18 @@ userSchema.virtual('lcs', {
 	foreignField: 'createdBy'
 });
 
+userSchema.virtual('extensions', {
+	ref: 'Extension',
+	localField: '_id',
+	foreignField: 'createdBy'
+});
+
+userSchema.virtual('amendments', {
+	ref: 'Amendment',
+	localField: '_id',
+	foreignField: 'createdBy'
+});
+
 // Hide Sensitive Data
 userSchema.methods.toJSON = function() {
 	const user = this;

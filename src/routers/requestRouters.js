@@ -1,6 +1,8 @@
 const express = require('express');
 const Request = require('../models/requestModel');
 const Supplier = require('../models/supplierModel');
+const Extension = require('../models/extensionModel');
+const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -130,48 +132,49 @@ router.patch(
 );
 
 // Executing request
-// router.patch(
-// 	'/requests/:id/execute',
-// 	auth({ canAdd: true }),
-// 	async ({ params, body, user }, res) => {
-// 		try {
-// 			const request = await Request.findById(params.id);
-// 			if (!request || request.state !== 'inprogress') {
-// 				throw new Error();
-// 			}
-// 			request.state = 'executed';
-// 			await request.save();
+router.patch(
+	'/requests/:id/execute',
+	auth({ canAdd: true }),
+	async ({ params, body, user }, res) => {
+		let extension;
+		let amendment;
+		const { lcId, notes, upTo, amount } = body;
+		try {
+			const request = await Request.findById(params.id);
+			if (!request || request.state !== 'inprogress') {
+				throw new Error();
+			}
+			request.state = 'executed';
+			await request.save();
 
-// 			if (body.type === 'new') {
-// 				const lc = new Lc({
-// 					...body.lc,
-// 					createdBy: user._id,
-// 					requestId: params.id
-// 				});
-// 				await lc.save();
-// 				res.send({ lc, request });
-// 			} else {
-// 				if (request.upTo) {
-// 					const amendment = new Amendment({
-// 						...body.amendment,
-// 						requestId: params.id,
-// 						createdBy: user._id
-// 					});
-// 					await amendment.save();
-// 				} else if (request.amount) {
-// 					const extension = new Extension({
-// 						...body.extension,
-// 						requestId: params.id,
-// 						createdBy: user._id
-// 					});
-// 					await extension.save();
-//         }
-//         res.send(request);
-// 			}
-// 		} catch (e) {
-// 			res.status(400).send(e);
-// 		}
-// 	}
-// );
+			if (request.upTo) {
+				// New Extension
+				extension = new Extension({
+					requestId: params.id,
+					createdBy: user.id,
+					lcId,
+					notes,
+					upTo
+				});
+				await extension.save();
+			}
+
+			if (request.amount) {
+				// New Amendment
+				amendment = new Amendment({
+					requestId: params.id,
+					createdBy: user.id,
+					lcId,
+					notes,
+					amount
+				});
+				await amendment.save();
+			}
+			res.send({ extension, amendment });
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	}
+);
 
 module.exports = router;

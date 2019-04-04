@@ -32,6 +32,12 @@ const lcSchema = new mongoose.Schema({
 	previouslyPaidWithInvoice: { type: Number }
 });
 
+lcSchema.virtual('extensions', {
+	ref: 'Extension',
+	localField: '_id',
+	foreignField: 'lcId'
+});
+
 lcSchema.pre('save', async function(next) {
 	const lc = this;
 

@@ -6,6 +6,8 @@ const contractRouter = require('./routers/contractRouters');
 const appendixRouter = require('./routers/appendixRouters');
 const requestRouter = require('./routers/requestRouters');
 const lcRouter = require('./routers/lcRouters');
+const extensionRouter = require('./routers/extensionRouters');
+const amendmentRouter = require('./routers/amendmentRouters');
 
 const app = express();
 
@@ -16,5 +18,7 @@ app.use(contractRouter);
 app.use(appendixRouter);
 app.use(requestRouter);
 app.use(lcRouter);
+app.use(extensionRouter);
+app.use(amendmentRouter);
 
 module.exports = app;
