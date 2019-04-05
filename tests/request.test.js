@@ -2,6 +2,8 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../src/app');
 const Request = require('../src/models/requestModel');
+const Amendment = require('../src/models/amendmentModel');
+const Extension = require('../src/models/extensionModel');
 const {
 	adminId,
 	admin,
@@ -10,6 +12,10 @@ const {
 	supplierThreeId,
 	newRequestId,
 	approvedRequestId,
+	requestForAmendmentId,
+	requestForExtensionId,
+	requestForBothId,
+	lcOneId,
 	inprogressRequestId,
 	setupDatabase
 } = require('./fixtures/db');
@@ -57,7 +63,7 @@ test('Should find all requests', async () => {
 		.set('Authorization', `Bearer ${activeUserOne.tokens[0].token}`)
 		.send()
 		.expect(200);
-	expect(body).toHaveLength(5);
+	expect(body).toHaveLength(8);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -166,4 +172,77 @@ test('Should not inprogress request if not approved', async () => {
 		.expect(400);
 	const newRequest = await Request.findById(newRequestId);
 	expect(newRequest.state).toEqual('new');
+});
+
+///////////////////////////////////////////////////////////////////////////////
+/////////  TESTS RELATED TO EXECUTING REQUEST BY ID  //////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should execute request and create new amendment', async () => {
+	await request(app)
+		.patch(`/requests/${requestForAmendmentId}/execute`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ lcId: lcOneId, amount: 5000 })
+		.expect(201);
+	const amendments = await Amendment.find();
+	const extensions = await Extension.find();
+	const amendmentRequest = await Request.findById(requestForAmendmentId);
+	expect(amendments).toHaveLength(1);
+	expect(extensions).toHaveLength(0);
+	expect(amendmentRequest.state).toEqual('executed');
+});
+
+test('Should execute request and create new extension', async () => {
+	await request(app)
+		.patch(`/requests/${requestForExtensionId}/execute`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ lcId: lcOneId, upTo: new Date() })
+		.expect(201);
+	const amendments = await Amendment.find();
+	const extensions = await Extension.find();
+	const extensionRequest = await Request.findById(requestForExtensionId);
+	expect(amendments).toHaveLength(0);
+	expect(extensions).toHaveLength(1);
+	expect(extensionRequest.state).toEqual('executed');
+});
+
+test('Should execute request and create new amendment and extension', async () => {
+	await request(app)
+		.patch(`/requests/${requestForBothId}/execute`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ lcId: lcOneId, upTo: new Date(), amount: 10000 })
+		.expect(201);
+	const amendments = await Amendment.find();
+	const extensions = await Extension.find();
+	const bothRequest = await Request.findById(requestForBothId);
+	expect(amendments).toHaveLength(1);
+	expect(extensions).toHaveLength(1);
+	expect(bothRequest.state).toEqual('executed');
+});
+
+test('Should not execute request if wrong request id', async () => {
+	await request(app)
+		.patch(`/requests/${new mongoose.Types.ObjectId()}/execute`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({ lcId: lcOneId, upTo: new Date(), amount: 10000 })
+		.expect(400);
+	const amendments = await Amendment.find();
+	const extensions = await Extension.find();
+	expect(amendments).toHaveLength(0);
+	expect(extensions).toHaveLength(0);
+});
+
+test('Should not execute request if wrong lc id', async () => {
+	await request(app)
+		.patch(`/requests/${requestForBothId}/execute`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.send({
+			lcId: new mongoose.Types.ObjectId(),
+			upTo: new Date(),
+			amount: 10000
+		})
+		.expect(400);
+	const amendments = await Amendment.find();
+	const extensions = await Extension.find();
+	expect(amendments).toHaveLength(0);
+	expect(extensions).toHaveLength(0);
 });

@@ -4,6 +4,8 @@ const Contract = require('../../src/models/contractModel');
 const Appendix = require('../../src/models/appendixModel');
 const Request = require('../../src/models/requestModel');
 const Lc = require('../../src/models/lcModel');
+const Amendment = require('../../src/models/amendmentModel');
+const Extension = require('../../src/models/extensionModel');
 const {
 	adminId,
 	admin,
@@ -54,6 +56,12 @@ const {
 	inprogressRequestOneId,
 	inprogressRequestOne,
 	executedRequestId,
+	requestForAmendmentId,
+	requestForAmendment,
+	requestForExtensionId,
+	requestForExtension,
+	requestForBothId,
+	requestForBoth,
 	executedRequest
 } = require('./requests');
 const { lcOneId, lcOne } = require('./lcs');
@@ -65,6 +73,8 @@ const setupDatabase = async () => {
 	await Appendix.deleteMany();
 	await Request.deleteMany();
 	await Lc.deleteMany();
+	await Amendment.deleteMany();
+	await Extension.deleteMany();
 
 	await new User(admin).save();
 	await new User(activeUserOne).save();
@@ -86,6 +96,9 @@ const setupDatabase = async () => {
 	await new Request(approvedRequest).save();
 	await new Request(inprogressRequest).save();
 	await new Request(inprogressRequestOne).save();
+	await new Request(requestForAmendment).save();
+	await new Request(requestForExtension).save();
+	await new Request(requestForBoth).save();
 	await new Request(executedRequest).save();
 	await new Lc(lcOne).save();
 };
@@ -133,6 +146,12 @@ module.exports = {
 	inprogressRequestOne,
 	executedRequestId,
 	executedRequest,
+	requestForAmendmentId,
+	requestForAmendment,
+	requestForExtensionId,
+	requestForExtension,
+	requestForBothId,
+	requestForBoth,
 	lcOneId,
 	lcOne,
 	setupDatabase

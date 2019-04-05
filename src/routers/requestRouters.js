@@ -144,8 +144,6 @@ router.patch(
 			if (!request || request.state !== 'inprogress') {
 				throw new Error();
 			}
-			request.state = 'executed';
-			await request.save();
 
 			if (request.upTo) {
 				// New Extension
@@ -170,7 +168,9 @@ router.patch(
 				});
 				await amendment.save();
 			}
-			res.send({ extension, amendment });
+			request.state = 'executed';
+			await request.save();
+			res.status(201).send({ extension, amendment });
 		} catch (e) {
 			res.status(400).send(e);
 		}

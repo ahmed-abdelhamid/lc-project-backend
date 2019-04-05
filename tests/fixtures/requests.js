@@ -42,6 +42,34 @@ const inprogressRequestOne = {
 	requestedBy: activeUserTwoId
 };
 
+const requestForAmendmentId = new mongoose.Types.ObjectId();
+const requestForAmendment = {
+	_id: requestForAmendmentId,
+	amount: 3000,
+	state: 'inprogress',
+	supplierId: supplierTwoId,
+	requestedBy: activeUserTwoId
+};
+
+const requestForExtensionId = new mongoose.Types.ObjectId();
+const requestForExtension = {
+	_id: requestForExtensionId,
+	upTo: new Date(),
+	state: 'inprogress',
+	supplierId: supplierTwoId,
+	requestedBy: activeUserTwoId
+};
+
+const requestForBothId = new mongoose.Types.ObjectId();
+const requestForBoth = {
+	_id: requestForBothId,
+	amount: 3000,
+	upTo: new Date(),
+	state: 'inprogress',
+	supplierId: supplierTwoId,
+	requestedBy: activeUserTwoId
+};
+
 const executedRequestId = new mongoose.Types.ObjectId();
 const executedRequest = {
 	_id: executedRequestId,
@@ -60,6 +88,12 @@ module.exports = {
 	inprogressRequest,
 	inprogressRequestOneId,
 	inprogressRequestOne,
+	requestForAmendmentId,
+	requestForAmendment,
+	requestForExtensionId,
+	requestForExtension,
+	requestForBothId,
+	requestForBoth,
 	executedRequestId,
 	executedRequest
 };
