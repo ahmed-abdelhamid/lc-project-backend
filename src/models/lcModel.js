@@ -38,6 +38,12 @@ lcSchema.virtual('extensions', {
 	foreignField: 'lcId'
 });
 
+lcSchema.virtual('amendments', {
+	ref: 'Amendment',
+	localField: '_id',
+	foreignField: 'lcId'
+});
+
 lcSchema.pre('save', async function(next) {
 	const lc = this;
 
