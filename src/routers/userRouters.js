@@ -162,16 +162,18 @@ router.post('/users/login', async (req, res) => {
 		const token = await user.generateAuthToken();
 		res.send({ user, token });
 	} catch (e) {
-		res.status(400).send(e);
+		res.status(401).send(e);
 	}
 });
 
 // Logout user
-router.post('/users/logout', auth(), async ({ user, token }, res) => {
+router.post('/users/logout', auth(), async (req, res) => {
 	try {
-		user.tokens = user.tokens.filter(({ userToken }) => userToken !== token);
-		await user.save();
-		res.send();
+		req.user.tokens = req.user.tokens.filter(
+			({ token }) => token !== req.token
+		);
+		await req.user.save();
+		res.send('signedout');
 	} catch (e) {
 		res.status(500).send(e);
 	}

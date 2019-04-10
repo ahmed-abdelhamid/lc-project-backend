@@ -100,3 +100,16 @@ test('Should not update supplier if invalid id', async () => {
 		.send({ notes: 'This is a new note' })
 		.expect(400);
 });
+
+///////////////////////////////////////////////////////////////////////////////
+////////////  TESTS RELATED TO UPLOAD SUPPLIER DOCUMENTS  /////////////////////
+///////////////////////////////////////////////////////////////////////////////
+test('Should upload required documents', async () => {
+	await request(app)
+		.post(`/suppliers/${supplierOneId}/upload`)
+		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
+		.attach('supplierDoc', 'tests/fixtures/1.pdf')
+		.expect(200);
+	const supplier = await Supplier.findById(supplierOneId);
+	expect(supplier.supplierDoc).toEqual(expect.any(Buffer));
+});
