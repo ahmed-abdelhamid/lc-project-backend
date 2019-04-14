@@ -173,7 +173,7 @@ router.post('/users/logout', auth(), async (req, res) => {
 			({ token }) => token !== req.token
 		);
 		await req.user.save();
-		res.send('signedout');
+		res.send();
 	} catch (e) {
 		res.status(500).send(e);
 	}
