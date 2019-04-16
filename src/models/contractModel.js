@@ -7,7 +7,7 @@ const contractSchema = new mongoose.Schema(
 		date: { type: Date, required: true },
 		soc: { type: String, trim: true, required: true },
 		amount: { type: Number, required: true, min: 0 },
-		duration: { type: String, required: true, trim: true },
+		duration: { type: Number, required: true, trim: true },
 		notes: { type: String, trim: true },
 		state: {
 			type: String,

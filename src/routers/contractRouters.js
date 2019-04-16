@@ -95,12 +95,18 @@ router.patch(
 			'date',
 			'state'
 		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
+
+		for (update of updates) {
+			if (!allowedUpdates.includes(update)) {
+				return res.status(400).send({ error: `you can not update ${update}`  });
+			}
 		}
+		// const isValidOperation = updates.every(update =>
+		// 	allowedUpdates.includes(update)
+		// );
+		// if (!isValidOperation) {
+		// 	return res.status(400).send({ error: 'Invalid Updates' });
+		// }
 		try {
 			const contract = await Contract.findByIdAndUpdate(params.id, body, {
 				new: true,
