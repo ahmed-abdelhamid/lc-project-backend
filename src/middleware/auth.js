@@ -15,7 +15,7 @@ const auth = (options = {}) => async (req, res, next) => {
 		}
 		req.token = token;
 		req.user = user;
-		next();
+		next();	
 	} catch (e) {
 		res.status(401).send({ error: 'Not Authorized User' });
 	}

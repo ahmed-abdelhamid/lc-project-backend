@@ -17,7 +17,7 @@ const requestSchema = new mongoose.Schema(
 			required: true
 		},
 		requestedBy: {
-			type:{ id: mongoose.Schema.Types.ObjectId, name: String},
+			type: mongoose.Schema.Types.ObjectId,
 			required: true,
 			ref: 'User'
 		},
@@ -38,6 +38,10 @@ requestSchema.virtual('extensions', {
 	foreignField: 'requestId'
 });
 
+
+
+
+
 requestSchema.pre('save', async function(next) {
 	const request = this;
 
@@ -52,6 +56,16 @@ requestSchema.pre('save', async function(next) {
 
 	next();
 });
+
+requestSchema.post('find', async function(docs) {
+
+	console.log(docs.length);
+	
+	for (let doc of docs) {
+      await doc.populate('requestedBy', 'name').execPopulate();
+	}
+	
+})
 
 const Request = new mongoose.model('Request', requestSchema);
 

@@ -6,6 +6,19 @@ const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
+router.get('/afh', async(req, res) => {
+	try {
+		const reqeusts = await Request.find();
+		console.log(reqeusts[0])
+		const request = reqeusts[0]
+		await request.populate('requestedBy').execPopulate()
+		res.send(request)
+	} catch (e) {
+		console.log(e);
+		res.status(404).send()
+	}
+})
+
 // Create new request
 router.post(
 	'/suppliers/:supplierId/requests',
@@ -14,7 +27,7 @@ router.post(
 		const request = new Request({
 			...body,
 			supplierId: params.supplierId,
-			requestedBy: {id: user._id, name: user.name}
+			requestedBy: user
 		});
 		try {
 			await request.save();
@@ -40,14 +53,14 @@ router.get(
 		} catch (e) {
 			res.status(404).send();
 		}
-	},
-	auth()
+	}
 );
 
 // Get all requests
 router.get('/requests', auth(), async (req, res) => {
 	try {
 		const requests = await Request.find();
+		console.log(requests);
 		res.send(requests);
 	} catch (e) {
 		res.status(500).send();
