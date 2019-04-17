@@ -14,7 +14,7 @@ router.post(
 		const request = new Request({
 			...body,
 			supplierId: params.supplierId,
-			requestedBy: user._id
+			requestedBy: {id: user._id, name: user.name}
 		});
 		try {
 			await request.save();
@@ -40,7 +40,8 @@ router.get(
 		} catch (e) {
 			res.status(404).send();
 		}
-	}
+	},
+	auth()
 );
 
 // Get all requests

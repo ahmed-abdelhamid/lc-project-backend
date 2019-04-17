@@ -17,7 +17,7 @@ const requestSchema = new mongoose.Schema(
 			required: true
 		},
 		requestedBy: {
-			type: mongoose.Schema.Types.ObjectId,
+			type:{ id: mongoose.Schema.Types.ObjectId, name: String},
 			required: true,
 			ref: 'User'
 		},
