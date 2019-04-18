@@ -159,7 +159,7 @@ router.patch(
 				throw new Error();
 			}
 
-			if (request.upTo) {
+			if (request.upTo !== null) {
 				// New Extension
 				extension = new Extension({
 					requestId: params.id,
@@ -171,7 +171,7 @@ router.patch(
 				await extension.save();
 			}
 
-			if (request.amount) {
+			if (request.amount !== null) {
 				// New Amendment
 				amendment = new Amendment({
 					requestId: params.id,
