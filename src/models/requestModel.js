@@ -38,15 +38,11 @@ requestSchema.virtual('extensions', {
 	foreignField: 'requestId'
 });
 
-
-
-
-
 requestSchema.pre('save', async function(next) {
 	const request = this;
 
 	if (!request.upTo && !request.amount) {
-		throw new Error('You need to provide now date or new amount data or both');
+		throw new Error('You need to provide new date or new amount data or both');
 	}
 
 	const supplier = await Supplier.findById(request.supplierId);
@@ -58,12 +54,10 @@ requestSchema.pre('save', async function(next) {
 });
 
 requestSchema.post('find', async function(docs) {
-	
 	for (let doc of docs) {
-      await doc.populate('requestedBy', 'name').execPopulate();
+		await doc.populate('requestedBy', 'name').execPopulate();
 	}
-	
-})
+});
 
 const Request = new mongoose.model('Request', requestSchema);
 

@@ -133,6 +133,21 @@ router.patch(
 	}
 );
 
+// Cancel Request
+router.patch('/requests/:id/cancel', auth(), async ({ params }, res) => {
+	try {
+		const request = await Request.findById(params.id);
+		if (!request || request.state === 'executed') {
+			throw new Error();
+		}
+		request.state = 'deleted';
+		await request.save();
+		res.send(request);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
+
 // Executing request
 router.patch(
 	'/requests/:id/execute',
