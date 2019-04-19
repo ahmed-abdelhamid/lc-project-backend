@@ -58,8 +58,6 @@ requestSchema.pre('save', async function(next) {
 });
 
 requestSchema.post('find', async function(docs) {
-
-	console.log(docs.length);
 	
 	for (let doc of docs) {
       await doc.populate('requestedBy', 'name').execPopulate();
