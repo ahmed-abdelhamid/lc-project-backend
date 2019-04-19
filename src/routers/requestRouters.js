@@ -14,7 +14,7 @@ router.post(
 		const request = new Request({
 			...body,
 			supplierId: params.supplierId,
-			requestedBy: user
+			requestedBy: user._id
 		});
 		try {
 			await request.save();
@@ -166,7 +166,7 @@ router.patch(
 				// New Extension
 				extension = new Extension({
 					requestId: params.id,
-					createdBy: user.id,
+					createdBy: user._id,
 					lcId,
 					notes,
 					upTo
@@ -178,7 +178,7 @@ router.patch(
 				// New Amendment
 				amendment = new Amendment({
 					requestId: params.id,
-					createdBy: user.id,
+					createdBy: user._id,
 					lcId,
 					notes,
 					amount

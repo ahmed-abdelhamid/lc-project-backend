@@ -1,6 +1,6 @@
 const express = require('express');
 require('./db/mongoose');
-const cors = require("cors");
+const cors = require('cors');
 const userRouter = require('./routers/userRouters');
 const supplierRouter = require('./routers/supplierRouters');
 const contractRouter = require('./routers/contractRouters');
@@ -9,6 +9,8 @@ const requestRouter = require('./routers/requestRouters');
 const lcRouter = require('./routers/lcRouters');
 const extensionRouter = require('./routers/extensionRouters');
 const amendmentRouter = require('./routers/amendmentRouters');
+const paymentRequestRouter = require('./routers/paymentRequestRouters');
+const paymentRouter = require('./routers/paymentRouters');
 
 const app = express();
 app.use(cors());
@@ -21,5 +23,7 @@ app.use(requestRouter);
 app.use(lcRouter);
 app.use(extensionRouter);
 app.use(amendmentRouter);
+app.use(paymentRequestRouter);
+app.use(paymentRouter);
 
 module.exports = app;

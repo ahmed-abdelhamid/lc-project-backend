@@ -22,6 +22,11 @@ const paymentSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Lc'
 		},
+		type: {
+			type: String,
+			enum: ['cash', 'lc'],
+			required: true
+		},
 		amount: { type: Number, required: true },
 		dateOfRequest: { type: Date, required: true },
 		createdBy: {
