@@ -97,6 +97,18 @@ userSchema.virtual('amendments', {
 	foreignField: 'createdBy'
 });
 
+userSchema.virtual('paymentRequests', {
+	ref: 'PaymentRequest',
+	localField: '_id',
+	foreignField: 'requestedBy'
+});
+
+userSchema.virtual('payments', {
+	ref: 'Payment',
+	localField: '_id',
+	foreignField: 'createdBy'
+});
+
 // Hide Sensitive Data
 userSchema.methods.toJSON = function() {
 	const user = this;

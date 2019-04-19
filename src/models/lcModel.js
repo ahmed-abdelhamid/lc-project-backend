@@ -44,6 +44,18 @@ lcSchema.virtual('amendments', {
 	foreignField: 'lcId'
 });
 
+lcSchema.virtual('paymentRequests', {
+	ref: 'PaymentRequest',
+	localField: '_id',
+	foreignField: 'lcId'
+});
+
+lcSchema.virtual('payments', {
+	ref: 'Payment',
+	localField: '_id',
+	foreignField: 'lcId'
+});
+
 lcSchema.pre('save', async function(next) {
 	const lc = this;
 

@@ -41,6 +41,18 @@ supplierSchema.virtual('lcs', {
 	foreignField: 'supplierId'
 });
 
+supplierSchema.virtual('paymentRequests', {
+	ref: 'PaymentRequest',
+	localField: '_id',
+	foreignField: 'supplierId'
+});
+
+supplierSchema.virtual('payments', {
+	ref: 'Payment',
+	localField: '_id',
+	foreignField: 'supplierId'
+});
+
 const Supplier = mongoose.model('Supplier', supplierSchema);
 
 module.exports = Supplier;

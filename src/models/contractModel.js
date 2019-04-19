@@ -34,6 +34,18 @@ contractSchema.virtual('appendixes', {
 	foreignField: 'contractId'
 });
 
+contractSchema.virtual('paymentRequests', {
+	ref: 'PaymentRequest',
+	localField: '_id',
+	foreignField: 'contractId'
+});
+
+contractSchema.virtual('payments', {
+	ref: 'Payment',
+	localField: '_id',
+	foreignField: 'contractId'
+});
+
 contractSchema.pre('save', async function(next) {
 	const contract = this;
 
