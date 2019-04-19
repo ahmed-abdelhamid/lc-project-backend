@@ -42,5 +42,31 @@ router.get('/lcs/:lcId/extensions', auth(), async ({ params }, res) => {
 });
 
 // Edit extension data
+router.patch(
+	'/extensions/:id',
+	auth({ canAdd: true }),
+	async ({ params, body }, res) => {
+		const updates = Object.keys(body);
+		const allowedUpdates = ['lcId', 'upTo', 'notes'];
+		const isValidOperation = updates.every(update =>
+			allowedUpdates.includes(update)
+		);
+		if (!isValidOperation) {
+			return res.status(400).send({ error: 'Invalid Updates' });
+		}
+		try {
+			const extension = await Extension.findByIdAndUpdate(params.id, body, {
+				new: true,
+				runValidators: true
+			});
+			if (!extension) {
+				throw new Error();
+			}
+			res.send(extension);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	}
+);
 
 module.exports = router;

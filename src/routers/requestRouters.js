@@ -6,19 +6,6 @@ const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
-// router.get('/afh', async(req, res) => {
-// 	try {
-// 		const reqeusts = await Request.find();
-// 		console.log(reqeusts[0])
-// 		const request = reqeusts[0]
-// 		await request.populate('requestedBy').execPopulate()
-// 		res.send(request)
-// 	} catch (e) {
-// 		console.log(e);
-// 		res.status(404).send()
-// 	}
-// })
-
 // Create new request
 router.post(
 	'/suppliers/:supplierId/requests',
@@ -119,7 +106,7 @@ router.patch(
 			}
 			request.state = 'approved';
 			await request.save();
-			console.log('Approved Request')
+			console.log('Approved Request');
 			res.send(request);
 		} catch (e) {
 			res.status(400).send(e);
