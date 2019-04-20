@@ -1,49 +1,49 @@
 const express = require('express');
 const Lc = require('../models/lcModel');
-const Amendment = require('../models/amendmentModel');
+const Amendement = require('../models/amendementModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
-// Get all amendments
-router.get('/amendments', auth(), async (req, res) => {
+// Get all amendements
+router.get('', auth(), async (req, res) => {
 	try {
-		const amendments = await Amendment.find();
-		res.send(amendments);
+		const amendements = await Amendement.find();
+		res.send(amendements);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 
-// Get amendment by id
-router.get('/amendment/:id', auth(), async ({ params }, res) => {
+// Get amendement by id
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
-		const amendment = await Amendment.findById(params.id);
-		if (!amendment) {
+		const amendement = await Amendement.findById(params.id);
+		if (!amendement) {
 			throw new Error();
 		}
-		res.send(amendment);
+		res.send(amendement);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Get amendments for specific lcs
-router.get('/lcs/:lcId/amendments', auth(), async ({ params }, res) => {
+// Get amendements for specific lcs
+router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.lcId);
 		if (!lc) {
 			throw new Error();
 		}
-		await lc.populate('amendments').execPopulate();
-		res.send(lc.amendments);
+		await lc.populate('amendements').execPopulate();
+		res.send(lc.amendements);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Edit amendment data
+// Edit amendement data
 router.patch(
-	'/amendments/:id',
+	'/:id',
 	auth({ canAdd: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);
@@ -55,14 +55,14 @@ router.patch(
 			return res.status(400).send({ error: 'Invalid Updates' });
 		}
 		try {
-			const amendment = await Amendment.findByIdAndUpdate(params.id, body, {
+			const amendement = await Amendement.findByIdAndUpdate(params.id, body, {
 				new: true,
 				runValidators: true
 			});
-			if (!amendment) {
+			if (!amendement) {
 				throw new Error();
 			}
-			res.send(amendment);
+			res.send(amendement);
 		} catch (e) {
 			res.status(400).send(e);
 		}

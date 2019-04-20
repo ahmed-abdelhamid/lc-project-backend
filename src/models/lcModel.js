@@ -29,7 +29,11 @@ const lcSchema = new mongoose.Schema({
 	amount: { type: Number, required: true },
 	notes: { type: String, trim: true },
 	previouslyPaidInCash: { type: Number },
-	previouslyPaidWithInvoice: { type: Number }
+	previouslyPaidWithInvoice: { type: Number },
+	active: {
+		type: Boolean,
+		default: true
+	},
 });
 
 lcSchema.virtual('extensions', {
@@ -38,8 +42,8 @@ lcSchema.virtual('extensions', {
 	foreignField: 'lcId'
 });
 
-lcSchema.virtual('amendments', {
-	ref: 'Amendment',
+lcSchema.virtual('amendements', {
+	ref: 'Amendement',
 	localField: '_id',
 	foreignField: 'lcId'
 });

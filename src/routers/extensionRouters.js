@@ -5,7 +5,7 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Get all extensions
-router.get('/extensions', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const extensions = await Extension.find();
 		res.send(extensions);
@@ -15,7 +15,7 @@ router.get('/extensions', auth(), async (req, res) => {
 });
 
 // Get extension by id
-router.get('/extensions/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const extension = await Extension.findById(params.id);
 		if (!extension) {
@@ -28,7 +28,7 @@ router.get('/extensions/:id', auth(), async ({ params }, res) => {
 });
 
 // Get extensions for specific lcs
-router.get('/lcs/:lcId/extensions', auth(), async ({ params }, res) => {
+router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.lcId);
 		if (!lc) {
@@ -43,7 +43,7 @@ router.get('/lcs/:lcId/extensions', auth(), async ({ params }, res) => {
 
 // Edit extension data
 router.patch(
-	'/extensions/:id',
+	'/:id',
 	auth({ canAdd: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);

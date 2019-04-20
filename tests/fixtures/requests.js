@@ -42,9 +42,9 @@ const inprogressRequestOne = {
 	requestedBy: activeUserTwoId
 };
 
-const requestForAmendmentId = new mongoose.Types.ObjectId();
-const requestForAmendment = {
-	_id: requestForAmendmentId,
+const requestForAmendementId = new mongoose.Types.ObjectId();
+const requestForAmendement = {
+	_id: requestForAmendementId,
 	amount: 3000,
 	state: 'inprogress',
 	supplierId: supplierTwoId,
@@ -88,8 +88,8 @@ module.exports = {
 	inprogressRequest,
 	inprogressRequestOneId,
 	inprogressRequestOne,
-	requestForAmendmentId,
-	requestForAmendment,
+	requestForAmendementId,
+	requestForAmendement,
 	requestForExtensionId,
 	requestForExtension,
 	requestForBothId,

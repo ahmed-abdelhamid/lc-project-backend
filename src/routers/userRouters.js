@@ -4,7 +4,7 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Signup new user
-router.post('/users', async ({ body }, res) => {
+router.post('', async ({ body }, res) => {
 	const user = new User(body);
 
 	try {
@@ -17,7 +17,7 @@ router.post('/users', async ({ body }, res) => {
 });
 
 // Get all users (ADMIN ONLY)
-router.get('/users', auth({ auth: 'admin' }), async (req, res) => {
+router.get('', auth({ auth: 'admin' }), async (req, res) => {
 	try {
 		const users = await User.find();
 		res.send(users);
@@ -27,12 +27,12 @@ router.get('/users', auth({ auth: 'admin' }), async (req, res) => {
 });
 
 // Find user's own profile
-router.get('/users/me', auth(), async ({ user }, res) => {
+router.get('/me', auth(), async ({ user }, res) => {
 	res.send(user);
 });
 
 // Find user by ID (ADMIN ONLY)
-router.get('/users/:id', auth({ auth: 'admin' }), async (req, res) => {
+router.get('/:id', auth({ auth: 'admin' }), async (req, res) => {
 	const _id = req.params.id;
 	try {
 		const user = await User.findById(_id);
@@ -46,7 +46,7 @@ router.get('/users/:id', auth({ auth: 'admin' }), async (req, res) => {
 });
 
 // Update user's own profile
-router.patch('/users/me', auth(), async ({ user, body }, res) => {
+router.patch('/me', auth(), async ({ user, body }, res) => {
 	const updates = Object.keys(body);
 	const allowedUpdates = ['name', 'email', 'password', 'phone'];
 	const isValidOperation = updates.every(update =>
@@ -66,7 +66,7 @@ router.patch('/users/me', auth(), async ({ user, body }, res) => {
 
 // Update user by ID (ADMIN ONLY)
 router.patch(
-	'/users/:id',
+	'/:id',
 	auth({ auth: 'admin' }),
 	async ({ params, body }, res) => {
 		let user;
@@ -155,7 +155,7 @@ router.patch(
 // );
 
 // Login existing user
-router.post('/users/login', async (req, res) => {
+router.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
 		const user = await User.findByCredentials(email, password);
@@ -167,7 +167,7 @@ router.post('/users/login', async (req, res) => {
 });
 
 // Logout user
-router.post('/users/logout', auth(), async (req, res) => {
+router.post('/logout', auth(), async (req, res) => {
 	try {
 		req.user.tokens = req.user.tokens.filter(
 			({ token }) => token !== req.token

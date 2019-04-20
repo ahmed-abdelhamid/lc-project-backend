@@ -2,18 +2,17 @@ const express = require('express');
 const Request = require('../models/requestModel');
 const Supplier = require('../models/supplierModel');
 const Extension = require('../models/extensionModel');
-const Amendment = require('../models/amendmentModel');
+const Amendement = require('../models/amendementModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new request
 router.post(
-	'/suppliers/:supplierId/requests',
+	'',
 	auth({ canRequest: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		const request = new Request({
 			...body,
-			supplierId: params.supplierId,
 			requestedBy: user._id
 		});
 		try {
@@ -27,7 +26,7 @@ router.post(
 
 // Get requests for specific supplier
 router.get(
-	'/suppliers/:supplierId/requests',
+	'/supplier/:supplierId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -44,7 +43,7 @@ router.get(
 );
 
 // Get all requests
-router.get('/requests', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const requests = await Request.find();
 		// console.log(requests);
@@ -55,7 +54,7 @@ router.get('/requests', auth(), async (req, res) => {
 });
 
 // Get request by ID
-router.get('/requests/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const request = await Request.findById(params.id);
 		if (!request) {
@@ -69,23 +68,23 @@ router.get('/requests/:id', auth(), async ({ params }, res) => {
 
 // Modify request only if still new
 router.patch(
-	'/requests/:id',
+	'',
 	auth({ canRequest: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body, user }, res) => {
+		const updates = {};
 		const allowedUpdates = ['supplierId', 'upTo', 'amount', 'notes'];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const request = await Request.findById(params.id);
-			if (!request || request.state !== 'new') {
+			const request = await Request.findById(body._id);
+			// only if request still new or approved
+			if (!request || request.state === 'approved' || request.state === 'inprogress' || user._id !== request.requestedBy) {
 				throw new Error();
 			}
-			updates.forEach(update => (request[update] = body[update]));
+			updates.forEach(update => (request[update] = updates[update]));
+			// after modify the state will return new and notes will be updated
+			request.state = 'new';
+			request.notes.concat(request.notes, ' ==> ', 'updated and needs new approval');
+			// need to show updates in frontend
 			await request.save();
 			res.send(request);
 		} catch (e) {
@@ -96,7 +95,7 @@ router.patch(
 
 // Approve request
 router.patch(
-	'/requests/:id/approve',
+	'/:id/approve',
 	auth({ canApprove: true }),
 	async ({ params }, res) => {
 		try {
@@ -116,7 +115,7 @@ router.patch(
 
 // Inprogressing request
 router.patch(
-	'/requests/:id/inprogress',
+	'/:id/inprogress',
 	auth({ canAdd: true }),
 	async ({ params }, res) => {
 		try {
@@ -133,13 +132,23 @@ router.patch(
 	}
 );
 
-// Cancel Request
-router.patch('/requests/:id/cancel', auth(), async ({ params }, res) => {
+// delete Request
+router.patch('/:id/delete', auth(), async ({ params }, res) => {
 	try {
 		const request = await Request.findById(params.id);
-		if (!request || request.state === 'executed') {
+		// check for request
+		if (!request) {
+			throw new Error();
+		// check if executed or inprogress that the delete canAdd = true
+		}else if (request.state === 'executed' || request.state === 'inprogress') {
+			if (user.canAdd !== true) {
+				throw new Error();
+			}
+		// if request is new or approved check if the requester is the deleter
+		} else if (user._id !== request.requestedBy) {
 			throw new Error();
 		}
+		
 		request.state = 'deleted';
 		await request.save();
 		res.send(request);
@@ -150,11 +159,11 @@ router.patch('/requests/:id/cancel', auth(), async ({ params }, res) => {
 
 // Executing request
 router.patch(
-	'/requests/:id/execute',
+	'/:id/execute',
 	auth({ canAdd: true }),
 	async ({ params, body, user }, res) => {
 		let extension;
-		let amendment;
+		let amendement;
 		const { lcId, notes, upTo, amount } = body;
 		try {
 			const request = await Request.findById(params.id);
@@ -162,7 +171,7 @@ router.patch(
 				throw new Error();
 			}
 
-			if (request.upTo !== null) {
+			if (request.upTo) {
 				// New Extension
 				extension = new Extension({
 					requestId: params.id,
@@ -174,20 +183,20 @@ router.patch(
 				await extension.save();
 			}
 
-			if (request.amount !== null) {
-				// New Amendment
-				amendment = new Amendment({
+			if (request.amount) {
+				// New Amendement
+				amendement = new Amendement({
 					requestId: params.id,
 					createdBy: user._id,
 					lcId,
 					notes,
 					amount
 				});
-				await amendment.save();
+				await amendement.save();
 			}
 			request.state = 'executed';
 			await request.save();
-			res.status(201).send({ extension, amendment });
+			res.status(201).send({ extension, amendement });
 		} catch (e) {
 			res.status(400).send(e);
 		}

@@ -6,13 +6,11 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new payment request
-router.post(
-	'/suppliers/:supplierId/paymentRequests',
+router.post('',
 	auth({ canRequest: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		const paymentRequest = new PaymentRequest({
 			...body,
-			supplierId: params.supplierId,
 			requestedBy: user._id
 		});
 		try {
@@ -26,7 +24,7 @@ router.post(
 
 // Get payment requests for specific supplier
 router.get(
-	'/suppliers/:supplierId/paymentRequests',
+	'/supplier/:supplierId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -43,7 +41,7 @@ router.get(
 );
 
 // Get all payment requests
-router.get('/paymentRequests', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const paymentRequests = await PaymentRequest.find();
 		res.send(paymentRequests);
@@ -53,7 +51,7 @@ router.get('/paymentRequests', auth(), async (req, res) => {
 });
 
 // Get payment request by ID
-router.get('/paymentRequests/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const paymentRequest = await PaymentRequest.findById(params.id);
 		if (!paymentRequest) {
@@ -67,10 +65,10 @@ router.get('/paymentRequests/:id', auth(), async ({ params }, res) => {
 
 // Modify payment request only if still new
 router.patch(
-	'/paymentRequests/:id',
+	'',
 	auth({ canRequest: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = [
 			'supplierId',
 			'contactId',
@@ -79,18 +77,15 @@ router.patch(
 			'lcId',
 			'notes'
 		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const paymentRequest = await PaymentRequest.findById(params.id);
-			if (!paymentRequest || paymentRequest.state !== 'new') {
+			const paymentRequest = await PaymentRequest.findById(body._id);
+			if (!paymentRequest || paymentRequest.state === 'approved' || paymentRequest.state === 'inprogress' || user._id !== paymentRequest.requestedBy) {
 				throw new Error();
 			}
-			updates.forEach(update => (paymentRequest[update] = body[update]));
+			updates.forEach(update => (paymentRequest[update] = updates[update]));
+			paymentRequest.state = 'new';
+			paymentRequest.notes.concat(paymentRequest.notes, ' ==> ', 'updated and needs new approval');
 			await paymentRequest.save();
 			res.send(paymentRequest);
 		} catch (e) {
@@ -101,7 +96,7 @@ router.patch(
 
 // Approve request
 router.patch(
-	'/paymentRequest/:id/approve',
+	'/:id/approve',
 	auth({ canApprove: true }),
 	async ({ params }, res) => {
 		try {
@@ -120,7 +115,7 @@ router.patch(
 
 // Inprogressing request
 router.patch(
-	'/paymentRequests/:id/inprogress',
+	'/:id/inprogress',
 	auth({ canAdd: true }),
 	async ({ params }, res) => {
 		try {
@@ -137,14 +132,23 @@ router.patch(
 	}
 );
 
-// Cancel Request
-router.patch('/paymentRequests/:id/cancel', auth(), async ({ params }, res) => {
+// delete Request
+router.patch('/:id/delete', auth(), async ({ params }, res) => {
 	try {
 		const paymentRequest = await PaymentRequest.findById(params.id);
-		if (!paymentRequest || paymentRequest.state === 'executed') {
+		// check for request
+		if (!paymentRequest) {
+			throw new Error();
+		// check if executed or inprogress that the delete canAdd = true
+		}else if (paymentRequest.state === 'executed' || paymentRequest.state === 'inprogress') {
+			if (user.canAdd !== true) {
+				throw new Error();
+			}
+		// if request is new or approved check if the requester is the deleter
+		} else if (user._id !== paymentRequest.requestedBy) {
 			throw new Error();
 		}
-		paymentRequest.state = 'canceled';
+		paymentRequest.state = 'deleted';
 		await paymentRequest.save();
 		res.send(paymentRequest);
 	} catch (e) {
@@ -154,7 +158,7 @@ router.patch('/paymentRequests/:id/cancel', auth(), async ({ params }, res) => {
 
 // Executing request
 router.patch(
-	'/paymentRequest/:id/execute',
+	'/:id/execute',
 	auth({ canAdd: true }),
 	async ({ params, body, user }, res) => {
 		let payment;

@@ -7,12 +7,11 @@ const router = new express.Router();
 
 // Create new Appendix
 router.post(
-	'/contracts/:contractId/appendixes',
+	'',
 	auth({ canRegister: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		const appendix = new Appendix({
 			...body,
-			contractId: params.contractId,
 			createdBy: user._id
 		});
 		try {
@@ -26,7 +25,7 @@ router.post(
 
 // Get appendixes for specific contracts
 router.get(
-	'/contracts/:contractId/appendixes',
+	'/contract/:contractId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -43,7 +42,7 @@ router.get(
 );
 
 // Get all appendixes
-router.get('/appendixes', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const appendixes = await Appendix.find();
 		res.send(appendixes);
@@ -53,7 +52,7 @@ router.get('/appendixes', auth(), async (req, res) => {
 });
 
 // Get appendix by ID
-router.get('/appendixes/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const appendix = await Appendix.findById(params.id);
 		if (!appendix) {
@@ -81,10 +80,10 @@ router.get('/appendixes/:id', auth(), async ({ params }, res) => {
 
 // Update appendix
 router.patch(
-	'/appendixes/:id',
+	'',
 	auth({ canRegister: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = [
 			'title',
 			'soc',
@@ -95,14 +94,9 @@ router.patch(
 			'date',
 			'state'
 		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const appendix = await Appendix.findByIdAndUpdate(params.id, body, {
+			const appendix = await Appendix.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});

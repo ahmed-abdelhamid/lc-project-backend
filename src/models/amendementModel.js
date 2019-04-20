@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Request = require('./requestModel');
 const Lc = require('./lcModel');
 
-const amendmentSchema = new mongoose.Schema(
+const amendementSchema = new mongoose.Schema(
 	{
 		requestId: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -25,15 +25,15 @@ const amendmentSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-amendmentSchema.pre('save', async function(next) {
-	const amendment = this;
+amendementSchema.pre('save', async function(next) {
+	const amendement = this;
 
-	const request = await Request.findById(amendment.requestId);
+	const request = await Request.findById(amendement.requestId);
 	if (!request) {
 		throw new Error({ error: 'Request not found' });
 	}
 
-	const lc = await Lc.findById(amendment.lcId);
+	const lc = await Lc.findById(amendement.lcId);
 	if (!lc) {
 		throw new Error({ error: 'Lc not found' });
 	}
@@ -41,6 +41,6 @@ amendmentSchema.pre('save', async function(next) {
 	next();
 });
 
-const Amendment = new mongoose.model('Amendment', amendmentSchema);
+const Amendement = new mongoose.model('Amendement', amendementSchema);
 
-module.exports = Amendment;
+module.exports = Amendement;

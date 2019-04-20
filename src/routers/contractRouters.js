@@ -7,12 +7,11 @@ const router = new express.Router();
 
 // Create new contract
 router.post(
-	'/suppliers/:supplierId/contracts',
+	'/:supplierId',
 	auth({ canRegister: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		const contract = new Contract({
 			...body,
-			supplierId: params.supplierId,
 			createdBy: user._id
 		});
 		try {
@@ -26,7 +25,7 @@ router.post(
 
 // Get contracts for specific supplier
 router.get(
-	'/suppliers/:supplierId/contracts',
+	'supplier/:supplierId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -43,7 +42,7 @@ router.get(
 );
 
 // Get all contracts
-router.get('/contracts', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const contracts = await Contract.find();
 		res.send(contracts);
@@ -53,7 +52,7 @@ router.get('/contracts', auth(), async (req, res) => {
 });
 
 // Get contract by ID
-router.get('/contracts/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const contract = await Contract.findById(params.id);
 		if (!contract) {
@@ -81,10 +80,10 @@ router.get('/contracts/:id', auth(), async ({ params }, res) => {
 
 // Update contract
 router.patch(
-	'/contracts/:id',
+	'',
 	auth({ canRegister: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = [
 			'title',
 			'soc',
@@ -95,20 +94,9 @@ router.patch(
 			'date',
 			'state'
 		];
-
-		for (update of updates) {
-			if (!allowedUpdates.includes(update)) {
-				return res.status(400).send({ error: `you can not update ${update}`  });
-			}
-		}
-		// const isValidOperation = updates.every(update =>
-		// 	allowedUpdates.includes(update)
-		// );
-		// if (!isValidOperation) {
-		// 	return res.status(400).send({ error: 'Invalid Updates' });
-		// }
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const contract = await Contract.findByIdAndUpdate(params.id, body, {
+			const contract = await Contract.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});

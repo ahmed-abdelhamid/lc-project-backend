@@ -17,7 +17,7 @@ const upload = multer({
 
 // Upload documents
 router.post(
-	'/suppliers/:id/upload',
+	'/:id/upload',
 	auth({ canRegister: true }),
 	upload.single('supplierDoc'),
 	async (req, res) => {
@@ -33,7 +33,7 @@ router.post(
 
 // Create new supplier
 router.post(
-	'/suppliers',
+	'',
 	auth({ canRegister: true }),
 	async ({ user, body }, res) => {
 		const supplier = new Supplier({ ...body, createdBy: user._id });
@@ -47,7 +47,7 @@ router.post(
 );
 
 // Read all suppliers
-router.get('/suppliers', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const suppliers = await Supplier.find();
 		res.send(suppliers);
@@ -57,7 +57,7 @@ router.get('/suppliers', auth(), async (req, res) => {
 });
 
 // Read supplier by id
-router.get('/suppliers/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.id);
 		if (!supplier) {
@@ -71,10 +71,10 @@ router.get('/suppliers/:id', auth(), async ({ params }, res) => {
 
 // Update supplier data
 router.patch(
-	'/suppliers/:id',
+	'',
 	auth({ canRegister: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = [
 			'name',
 			'specialization',
@@ -83,14 +83,9 @@ router.patch(
 			'crRegisteration',
 			'state'
 		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const supplier = await Supplier.findByIdAndUpdate(params.id, body, {
+			const supplier = await Supplier.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});
@@ -103,5 +98,39 @@ router.patch(
 		}
 	}
 );
+
+// router.patch(
+// 	'/:id',
+// 	auth({ canRegister: true }),
+// 	async ({ params, body }, res) => {
+// 		const updates = Object.keys(body);
+// 		const allowedUpdates = [
+// 			'name',
+// 			'specialization',
+// 			'notes',
+// 			'vatRegisteration',
+// 			'crRegisteration',
+// 			'state'
+// 		];
+// 		const isValidOperation = updates.every(update =>
+// 			allowedUpdates.includes(update)
+// 		);
+// 		if (!isValidOperation) {
+// 			return res.status(400).send({ error: 'Invalid Updates' });
+// 		}
+// 		try {
+// 			const supplier = await Supplier.findByIdAndUpdate(params.id, body, {
+// 				new: true,
+// 				runValidators: true
+// 			});
+// 			if (!supplier) {
+// 				throw new Error();
+// 			}
+// 			res.send(supplier);
+// 		} catch (e) {
+// 			res.status(400).send(e);
+// 		}
+// 	}
+// );
 
 module.exports = router;

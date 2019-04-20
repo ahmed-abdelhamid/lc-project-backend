@@ -6,13 +6,11 @@ const router = new express.Router();
 
 // Create new lc
 router.post(
-	'/requests/:requestId/lcs',
+	'',
 	auth({ canAdd: true }),
-	async ({ params, body, user }, res) => {
-		const { requestId } = params;
+	async ({ body, user }, res) => {
 		const lc = new Lc({
 			...body,
-			requestId,
 			createdBy: user._id
 		});
 		try {
@@ -25,7 +23,7 @@ router.post(
 );
 
 // Get all lcs
-router.get('/lcs', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const lcs = await Lc.find();
 		res.send(lcs);
@@ -35,7 +33,7 @@ router.get('/lcs', auth(), async (req, res) => {
 });
 
 // Get lc by ID
-router.get('/lcs/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.id);
 		if (!lc) {
@@ -49,10 +47,10 @@ router.get('/lcs/:id', auth(), async ({ params }, res) => {
 
 // Update lc by id
 router.patch(
-	'/lcs/:id',
+	'',
 	auth({ canAdd: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = [
 			'supplierId',
 			'issuer',
@@ -68,14 +66,9 @@ router.patch(
 			'previouslyPaidInCash',
 			'previouslyPaidWithInvoice'
 		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const lc = await Lc.findByIdAndUpdate(params.id, body, {
+			const lc = await Lc.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});
@@ -90,7 +83,7 @@ router.patch(
 );
 
 // Get lcs for specific suppliers
-router.get('/suppliers/:supplierId/lcs', auth(), async ({ params }, res) => {
+router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.supplierId);
 		if (!supplier) {
@@ -98,6 +91,20 @@ router.get('/suppliers/:supplierId/lcs', auth(), async ({ params }, res) => {
 		}
 		await supplier.populate('lcs').execPopulate();
 		res.send(supplier.lcs);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+
+// Get lcs for specific contract
+router.get('/contract/:contractId', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.contractId);
+		if (!contract) {
+			throw new Error();
+		}
+		await contract.populate('lcs').execPopulate();
+		res.send(contract.lcs);
 	} catch (e) {
 		res.status(404).send();
 	}

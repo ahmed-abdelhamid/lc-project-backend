@@ -7,7 +7,7 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Get all payments
-router.get('/payments', auth(), async (req, res) => {
+router.get('', auth(), async (req, res) => {
 	try {
 		const payments = await Payment.find();
 		res.send(payments);
@@ -17,7 +17,7 @@ router.get('/payments', auth(), async (req, res) => {
 });
 
 // Get payment by id
-router.get('/payments/:id', auth(), async ({ params }, res) => {
+router.get('/:id', auth(), async ({ params }, res) => {
 	try {
 		const payment = await Payment.findById(params.id);
 		if (!payment) {
@@ -30,7 +30,7 @@ router.get('/payments/:id', auth(), async ({ params }, res) => {
 });
 
 // Get payments for specific lc
-router.get('/lcs/:lcId/payments', auth(), async ({ params }, res) => {
+router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.lcId);
 		if (!lc) {
@@ -45,7 +45,7 @@ router.get('/lcs/:lcId/payments', auth(), async ({ params }, res) => {
 
 // Get payments for specific supplier
 router.get(
-	'/suppliers/:supplierId/payments',
+	'/supplier/:supplierId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -63,7 +63,7 @@ router.get(
 
 // Get payments for specific contract
 router.get(
-	'/contracts/:contractId/payments',
+	'/contract/:contractId',
 	auth(),
 	async ({ params }, res) => {
 		try {
@@ -81,7 +81,7 @@ router.get(
 
 // Edit payment data in case of cash only
 router.patch(
-	'/payments/:id',
+	'/:id',
 	auth({ canAdd: true }),
 	async ({ params, body }, res) => {
 		const updates = Object.keys(body);
