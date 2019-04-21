@@ -43,19 +43,14 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 
 // Edit amendement data
 router.patch(
-	'/:id',
+	'',
 	auth({ canAdd: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = ['lcId', 'amount', 'notes'];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const amendement = await Amendement.findByIdAndUpdate(params.id, body, {
+			const amendement = await Amendement.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});

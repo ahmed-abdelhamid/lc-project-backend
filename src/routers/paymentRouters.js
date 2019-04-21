@@ -81,22 +81,16 @@ router.get(
 
 // Edit payment data in case of cash only
 router.patch(
-	'/:id',
+	'',
 	auth({ canAdd: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
 		const allowedUpdates = ['amount', 'notes'];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
 		try {
-			const payment = await Payment.findById(params.id);
+			const payment = await Payment.findById(body._id);
 			if (!payment || payment.type === 'lc') {
 				throw new Error();
 			}
+			allowedUpdates.map(update => payment[update] = body[update]);
 			await payment.save();
 			res.send(payment);
 		} catch (e) {

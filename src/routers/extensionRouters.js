@@ -43,19 +43,14 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 
 // Edit extension data
 router.patch(
-	'/:id',
+	'',
 	auth({ canAdd: true }),
-	async ({ params, body }, res) => {
-		const updates = Object.keys(body);
+	async ({ body }, res) => {
+		const updates = {};
 		const allowedUpdates = ['lcId', 'upTo', 'notes'];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
-		}
+		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const extension = await Extension.findByIdAndUpdate(params.id, body, {
+			const extension = await Extension.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});

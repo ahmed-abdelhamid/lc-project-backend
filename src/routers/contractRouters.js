@@ -7,7 +7,7 @@ const router = new express.Router();
 
 // Create new contract
 router.post(
-	'/:supplierId',
+	'',
 	auth({ canRegister: true }),
 	async ({ body, user }, res) => {
 		const contract = new Contract({
@@ -25,17 +25,19 @@ router.post(
 
 // Get contracts for specific supplier
 router.get(
-	'supplier/:supplierId',
+	'/supplier/:supplierId',
 	auth(),
 	async ({ params }, res) => {
 		try {
 			const supplier = await Supplier.findById(params.supplierId);
+			
 			if (!supplier) {
 				throw new Error();
 			}
 			await supplier.populate('contracts').execPopulate();
 			res.send(supplier.contracts);
 		} catch (e) {
+			
 			res.status(404).send();
 		}
 	}
