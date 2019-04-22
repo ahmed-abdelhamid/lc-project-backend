@@ -13,7 +13,14 @@ router.post(
 			...body,
 			createdBy: user._id
 		});
+		
 		try {
+			const request = await Request.findById(body.requestId);
+			if (!request || request.state !== 'inprogress') {
+				throw new Error();
+			}
+			request.state = 'executed';
+			await request.save();
 			await lc.save();
 			res.status(201).send(lc);
 		} catch (e) {

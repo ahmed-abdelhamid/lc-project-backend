@@ -40,6 +40,24 @@ router.get(
 			res.status(404).send();
 		}
 	}
+	);
+	
+// Get requests for specific lc
+router.get(
+	'/lc/:lcId',
+	auth(),
+	async ({ params }, res) => {
+		try {
+			const lc = await Lc.findById(params.lcId);
+			if (!lc) {
+				throw new Error();
+			}
+			await lc.populate('requests').execPopulate();
+			res.send(lc.requests);
+		} catch (e) {
+			res.status(404).send();
+		}
+	}
 );
 
 // Get all requests
@@ -66,13 +84,13 @@ router.get('/:id', auth(), async ({ params }, res) => {
 	}
 });
 
-// Modify request only if still new
+// Modify request only if still new or approved
 router.patch(
 	'',
 	auth({ canRequest: true }),
 	async ({ body, user }, res) => {
 		const updates = {};
-		const allowedUpdates = ['supplierId', 'upTo', 'amount', 'notes'];
+		const allowedUpdates = ['upTo', 'amount', 'notes'];
 		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
 			const request = await Request.findById(body._id);
@@ -105,7 +123,6 @@ router.patch(
 			}
 			request.state = 'approved';
 			await request.save();
-			console.log('Approved Request');
 			res.send(request);
 		} catch (e) {
 			res.status(400).send(e);
@@ -171,7 +188,7 @@ router.patch(
 				throw new Error();
 			}
 
-			if (request.upTo) {
+			if (upTo) {
 				// New Extension
 				extension = new Extension({
 					requestId: params.id,
@@ -183,7 +200,7 @@ router.patch(
 				await extension.save();
 			}
 
-			if (request.amount) {
+			if (amount) {
 				// New Amendement
 				amendement = new Amendement({
 					requestId: params.id,

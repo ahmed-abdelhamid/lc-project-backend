@@ -60,6 +60,12 @@ lcSchema.virtual('payments', {
 	foreignField: 'lcId'
 });
 
+lcSchema.virtual('requests', {
+	ref: 'Requests',
+	localField: '_id',
+	foreignField: 'lcId'
+});
+
 lcSchema.pre('save', async function(next) {
 	const lc = this;
 

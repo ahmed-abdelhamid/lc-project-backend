@@ -3,9 +3,12 @@ const Supplier = require('./supplierModel');
 
 const requestSchema = new mongoose.Schema(
 	{
+		lcId:{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Lc'
+		},
 		supplierId: {
 			type: mongoose.Schema.Types.ObjectId,
-			required: true,
 			ref: 'Supplier'
 		},
 		upTo: { type: Date },
@@ -16,6 +19,11 @@ const requestSchema = new mongoose.Schema(
 			default: 'new',
 			required: true
 		},
+		// type: {
+		// 	type: String,
+		// 	enum: ['extension', 'amendement'],
+		// 	required: true
+		// },
 		requestedBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
