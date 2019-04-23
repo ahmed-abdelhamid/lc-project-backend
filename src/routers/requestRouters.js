@@ -103,7 +103,7 @@ router.patch(
 		try {
 			const request = await Request.findById(body._id);
 			// only if request still new or approved
-			if (request || request.state === 'executed' || request.state === 'inprogress'
+			if (!request || request.state === 'executed' || request.state === 'inprogress'
 			 || (user._id).toString() !== (request.requestedBy).toString()) {
 				throw new Error();
 			}
