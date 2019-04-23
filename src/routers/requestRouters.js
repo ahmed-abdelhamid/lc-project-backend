@@ -15,7 +15,14 @@ router.post(
 			...body,
 			requestedBy: user._id
 		});
+
 		try {
+			if (request.lcId) {
+				const lc = await Lc.findById(request.lcId);
+				if (!lc) {
+					throw new Error();
+				}
+			}
 			await request.save();
 			res.status(201).send(request);
 		} catch (e) {

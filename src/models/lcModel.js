@@ -13,11 +13,6 @@ const lcSchema = new mongoose.Schema({
 		required: true,
 		ref: 'User'
 	},
-	requestId: {
-		type: mongoose.Schema.Types.ObjectId,
-		required: true,
-		ref: 'Request'
-	},
 	issuer: { type: String, required: true, trim: true },
 	bankName: { type: String, required: true, trim: true },
 	number: { type: String, required: true, unique: true, trim: true },
@@ -32,7 +27,8 @@ const lcSchema = new mongoose.Schema({
 	previouslyPaidWithInvoice: { type: Number },
 	active: {
 		type: Boolean,
-		default: true
+		default: true,
+		required: false
 	},
 });
 
@@ -61,7 +57,7 @@ lcSchema.virtual('payments', {
 });
 
 lcSchema.virtual('requests', {
-	ref: 'Requests',
+	ref: 'Request',
 	localField: '_id',
 	foreignField: 'lcId'
 });

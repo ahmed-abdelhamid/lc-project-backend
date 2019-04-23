@@ -19,11 +19,6 @@ const requestSchema = new mongoose.Schema(
 			default: 'new',
 			required: true
 		},
-		// type: {
-		// 	type: String,
-		// 	enum: ['extension', 'amendement'],
-		// 	required: true
-		// },
 		requestedBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
@@ -34,11 +29,6 @@ const requestSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-requestSchema.virtual('lcs', {
-	ref: 'Lc',
-	localField: '_id',
-	foreignField: 'requestId'
-});
 
 requestSchema.virtual('extensions', {
 	ref: 'Extension',
