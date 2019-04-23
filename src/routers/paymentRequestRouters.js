@@ -158,33 +158,35 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 
 // Executing request
 router.patch(
-	'/:id/execute',
+	'/execute',
 	auth({ canAdd: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		let payment;
 		const { notes, amount } = body;
 		try {
-			const paymentRequest = await PaymentRequest.findById(params.id);
+			const paymentRequest = await PaymentRequest.findById(body._id);
 			if (!paymentRequest || paymentRequest.state !== 'inprogress') {
 				throw new Error();
 			}
 
 			payment = new Payment({
-				paymentRequestId: params.id,
+				paymentRequestId: paymentRequest._id,
 				supplierId: paymentRequest.supplierId,
 				contractId: paymentRequest.contractId,
 				createdBy: user._id,
-				dateOfRequest: paymentRequest.createdAt,
+				createdAt: paymentRequest.createdAt,
 				type: paymentRequest.type,
-				notes
+				dateOfRequest: paymentRequest.createdAt
+				
 			});
 
 			if (paymentRequest.type === 'lc') {
-				// New Payment
 				payment.lcId = paymentRequest.lcId;
 				payment.amount = paymentRequest.amount;
+				payment.notes = paymentRequest.notes;
 			} else {
 				payment.amount = amount;
+				payment.notes = notes;
 			}
 
 			await payment.save();

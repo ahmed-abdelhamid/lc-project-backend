@@ -46,7 +46,7 @@ requestSchema.pre('save', async function(next) {
 	const request = this;
 
 	if (!request.upTo && !request.amount) {
-		throw new Error('You need to provide new date or new amount data or both');
+		throw new Error('You need to provide new date or new amount or both');
 	}
 
 	const supplier = await Supplier.findById(request.supplierId);

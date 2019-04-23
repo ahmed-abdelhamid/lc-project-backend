@@ -103,13 +103,13 @@ router.patch(
 		try {
 			const request = await Request.findById(body._id);
 			// only if request still new or approved
-			if (!request || request.state === 'approved' || request.state === 'inprogress' || user._id !== request.requestedBy) {
+			if (request || request.state === 'executed' || request.state === 'inprogress'
+			 || (user._id).toString() !== (request.requestedBy).toString()) {
 				throw new Error();
 			}
-			updates.forEach(update => (request[update] = updates[update]));
+			allowedUpdates.map(update => request[update] = updates[update]);
 			// after modify the state will return new and notes will be updated
-			request.state = 'new';
-			request.notes.concat(request.notes, ' ==> ', 'updated and needs new approval');
+			request.state = 'new';			
 			// need to show updates in frontend
 			await request.save();
 			res.send(request);
