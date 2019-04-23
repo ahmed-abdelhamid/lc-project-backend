@@ -36,6 +36,12 @@ requestSchema.virtual('extensions', {
 	foreignField: 'requestId'
 });
 
+requestSchema.virtual('amendements', {
+	ref: 'Amendement',
+	localField: '_id',
+	foreignField: 'requestId'
+});
+
 requestSchema.pre('save', async function(next) {
 	const request = this;
 

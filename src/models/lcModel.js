@@ -3,6 +3,11 @@ const Supplier = require('./supplierModel');
 const Request = require('./requestModel');
 
 const lcSchema = new mongoose.Schema({
+	// requestsId: [{requestId: {
+	// 	type: mongoose.Schema.Types.ObjectId,
+	// 	required: false,
+	// 	ref: 'Request'
+	// }}], 
 	supplierId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
@@ -70,23 +75,25 @@ lcSchema.pre('save', async function(next) {
 		throw new Error({ error: 'Supplier not found' });
 	}
 
-	const request = await Request.findById(lc.requestId);
-	if (!request) {
-		throw new Error({ error: 'Request not found' });
-	}
+	// const request = await Request.findById(params.id);
+	// if (!request) {
+	// 	throw new Error({ error: 'Request not found' });
+	// }
 
-	if (supplier._id.toString() !== request.supplierId.toString()) {
-		throw new Error({
-			error: 'Supplier in request should match supplier in lc'
-		});
-	}
+	// if (supplier._id.toString() !== request.supplierId.toString()) {
+	// 	throw new Error({
+	// 		error: 'Supplier in request should match supplier in lc'
+	// 	});
+	// }
 
-	if (request.state !== 'inprogress') {
-		throw new Error({ error: 'Can\'t execute this request' });
-	} else {
-		request.state = 'executed';
-		await request.save();
-	}
+
+
+	// if (request.state !== 'inprogress') {
+	// 	throw new Error({ error: 'Can\'t execute this request' });
+	// } else {
+	// 	request.state = 'executed';
+	// 	await request.save();
+	// }
 
 	next();
 });

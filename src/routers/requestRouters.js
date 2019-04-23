@@ -3,6 +3,7 @@ const Request = require('../models/requestModel');
 const Supplier = require('../models/supplierModel');
 const Extension = require('../models/extensionModel');
 const Amendement = require('../models/amendementModel');
+const Lc = require('../models/lcModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -194,7 +195,7 @@ router.patch(
 			if (!request || request.state !== 'inprogress') {
 				throw new Error();
 			}
-
+			
 			if (upTo) {
 				// New Extension
 				extension = new Extension({

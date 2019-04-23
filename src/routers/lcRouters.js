@@ -1,27 +1,33 @@
 const express = require('express');
 const Lc = require('../models/lcModel');
 const Supplier = require('../models/supplierModel');
+const Request = require('../models/requestModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new lc
 router.post(
-	'',
+	'/:id',
 	auth({ canAdd: true }),
-	async ({ body, user }, res) => {
+	async ({ params, body, user }, res) => {
+		const requestId = params.id;
 		const lc = new Lc({
 			...body,
+			// requestsId: [{requestId}],
 			createdBy: user._id
 		});
+		// lc.requestsId.unshift({requestId});
 		
 		try {
-			// const request = await Request.findById(params.id);
-			// if (!request || request.state !== 'inprogress') {
-			// 	throw new Error();
-			// }
-			// request.state = 'executed';
-			// await request.save();
+			
+			const request = await Request.findById(requestId);
+			console.log(request);
+			if (!request || request.state !== 'inprogress') {
+				throw new Error('request not found');
+			}
+			request.state = 'executed';
 			await lc.save();
+			await request.save();
 			res.status(201).send(lc);
 		} catch (e) {
 			res.status(400).send(e);
