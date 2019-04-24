@@ -2,12 +2,7 @@ const mongoose = require('mongoose');
 const Supplier = require('./supplierModel');
 const Request = require('./requestModel');
 
-const lcSchema = new mongoose.Schema({
-	// requestsId: [{requestId: {
-	// 	type: mongoose.Schema.Types.ObjectId,
-	// 	required: false,
-	// 	ref: 'Request'
-	// }}], 
+const lcSchema = new mongoose.Schema({ 
 	supplierId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
@@ -43,8 +38,8 @@ lcSchema.virtual('extensions', {
 	foreignField: 'lcId'
 });
 
-lcSchema.virtual('amendements', {
-	ref: 'Amendement',
+lcSchema.virtual('amendments', {
+	ref: 'Amendment',
 	localField: '_id',
 	foreignField: 'lcId'
 });

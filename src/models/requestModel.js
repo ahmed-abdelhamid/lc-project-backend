@@ -9,6 +9,7 @@ const requestSchema = new mongoose.Schema(
 		},
 		supplierId: {
 			type: mongoose.Schema.Types.ObjectId,
+			required: true,
 			ref: 'Supplier'
 		},
 		upTo: { type: Date },
@@ -36,8 +37,8 @@ requestSchema.virtual('extensions', {
 	foreignField: 'requestId'
 });
 
-requestSchema.virtual('amendements', {
-	ref: 'Amendement',
+requestSchema.virtual('amendments', {
+	ref: 'Amendment',
 	localField: '_id',
 	foreignField: 'requestId'
 });

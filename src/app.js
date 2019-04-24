@@ -8,7 +8,7 @@ const appendixRouter = require('./routers/appendixRouters');
 const requestRouter = require('./routers/requestRouters');
 const lcRouter = require('./routers/lcRouters');
 const extensionRouter = require('./routers/extensionRouters');
-const amendementRouter = require('./routers/amendementRouters');
+const amendmentRouter = require('./routers/amendmentRouters');
 const paymentRequestRouter = require('./routers/paymentRequestRouters');
 const paymentRouter = require('./routers/paymentRouters');
 
@@ -22,7 +22,7 @@ app.use("/appendixes", appendixRouter);
 app.use("/requests", requestRouter);
 app.use("/lcs", lcRouter);
 app.use("/extensions", extensionRouter);
-app.use("/amendements", amendementRouter);
+app.use("/amendments", amendmentRouter);
 app.use("/paymentRequests", paymentRequestRouter);
 app.use("/payments", paymentRouter);
 

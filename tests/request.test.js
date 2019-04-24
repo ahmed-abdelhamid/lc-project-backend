@@ -2,7 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../src/app');
 const Request = require('../src/models/requestModel');
-const Amendement = require('../src/models/amendementModel');
+const Amendment = require('../src/models/amendmentModel');
 const Extension = require('../src/models/extensionModel');
 const {
 	adminId,
@@ -12,7 +12,7 @@ const {
 	supplierThreeId,
 	newRequestId,
 	approvedRequestId,
-	requestForAmendementId,
+	requestForAmendmentId,
 	requestForExtensionId,
 	requestForBothId,
 	lcOneId,
@@ -177,18 +177,18 @@ test('Should not inprogress request if not approved', async () => {
 ///////////////////////////////////////////////////////////////////////////////
 /////////  TESTS RELATED TO EXECUTING REQUEST BY ID  //////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-test('Should execute request and create new amendement', async () => {
+test('Should execute request and create new amendment', async () => {
 	await request(app)
-		.patch(`/requests/${requestForAmendementId}/execute`)
+		.patch(`/requests/${requestForAmendmentId}/execute`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ lcId: lcOneId, amount: 5000 })
 		.expect(201);
-	const amendements = await Amendement.find();
+	const amendments = await Amendment.find();
 	const extensions = await Extension.find();
-	const amendementRequest = await Request.findById(requestForAmendementId);
-	expect(amendements).toHaveLength(1);
+	const amendmentRequest = await Request.findById(requestForAmendmentId);
+	expect(amendments).toHaveLength(1);
 	expect(extensions).toHaveLength(0);
-	expect(amendementRequest.state).toEqual('executed');
+	expect(amendmentRequest.state).toEqual('executed');
 });
 
 test('Should execute request and create new extension', async () => {
@@ -197,24 +197,24 @@ test('Should execute request and create new extension', async () => {
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ lcId: lcOneId, upTo: new Date() })
 		.expect(201);
-	const amendements = await Amendement.find();
+	const amendments = await Amendment.find();
 	const extensions = await Extension.find();
 	const extensionRequest = await Request.findById(requestForExtensionId);
-	expect(amendements).toHaveLength(0);
+	expect(amendments).toHaveLength(0);
 	expect(extensions).toHaveLength(1);
 	expect(extensionRequest.state).toEqual('executed');
 });
 
-test('Should execute request and create new amendement and extension', async () => {
+test('Should execute request and create new amendment and extension', async () => {
 	await request(app)
 		.patch(`/requests/${requestForBothId}/execute`)
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ lcId: lcOneId, upTo: new Date(), amount: 10000 })
 		.expect(201);
-	const amendements = await Amendement.find();
+	const amendments = await Amendment.find();
 	const extensions = await Extension.find();
 	const bothRequest = await Request.findById(requestForBothId);
-	expect(amendements).toHaveLength(1);
+	expect(amendments).toHaveLength(1);
 	expect(extensions).toHaveLength(1);
 	expect(bothRequest.state).toEqual('executed');
 });
@@ -225,9 +225,9 @@ test('Should not execute request if wrong request id', async () => {
 		.set('Authorization', `Bearer ${admin.tokens[0].token}`)
 		.send({ lcId: lcOneId, upTo: new Date(), amount: 10000 })
 		.expect(400);
-	const amendements = await Amendement.find();
+	const amendments = await Amendment.find();
 	const extensions = await Extension.find();
-	expect(amendements).toHaveLength(0);
+	expect(amendments).toHaveLength(0);
 	expect(extensions).toHaveLength(0);
 });
 
@@ -241,8 +241,8 @@ test('Should not execute request if wrong lc id', async () => {
 			amount: 10000
 		})
 		.expect(400);
-	const amendements = await Amendement.find();
+	const amendments = await Amendment.find();
 	const extensions = await Extension.find();
-	expect(amendements).toHaveLength(0);
+	expect(amendments).toHaveLength(0);
 	expect(extensions).toHaveLength(0);
 });

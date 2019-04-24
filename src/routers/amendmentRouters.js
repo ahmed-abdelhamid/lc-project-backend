@@ -1,47 +1,47 @@
 const express = require('express');
 const Lc = require('../models/lcModel');
-const Amendement = require('../models/amendementModel');
+const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
-// Get all amendements
+// Get all amendments
 router.get('', auth(), async (req, res) => {
 	try {
-		const amendements = await Amendement.find();
-		res.send(amendements);
+		const amendments = await Amendment.find();
+		res.send(amendments);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 
-// Get amendement by id
+// Get amendment by id
 router.get('/:id', auth(), async ({ params }, res) => {
 	try {
-		const amendement = await Amendement.findById(params.id);
-		if (!amendement) {
+		const amendment = await Amendment.findById(params.id);
+		if (!amendment) {
 			throw new Error();
 		}
-		res.send(amendement);
+		res.send(amendment);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Get amendements for specific lcs
+// Get amendments for specific lcs
 router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.lcId);
 		if (!lc) {
 			throw new Error();
 		}
-		await lc.populate('amendements').execPopulate();
-		res.send(lc.amendements);
+		await lc.populate('amendments').execPopulate();
+		res.send(lc.amendments);
 	} catch (e) {
 		res.status(404).send();
 	}
 });
 
-// Edit amendement data
+// Edit amendment data
 router.patch(
 	'',
 	auth({ canAdd: true }),
@@ -50,14 +50,14 @@ router.patch(
 		const allowedUpdates = ['lcId', 'amount', 'notes'];
 		allowedUpdates.map(update => updates[update] = body[update]);
 		try {
-			const amendement = await Amendement.findByIdAndUpdate(body._id, updates, {
+			const amendment = await Amendment.findByIdAndUpdate(body._id, updates, {
 				new: true,
 				runValidators: true
 			});
-			if (!amendement) {
+			if (!amendment) {
 				throw new Error();
 			}
-			res.send(amendement);
+			res.send(amendment);
 		} catch (e) {
 			res.status(400).send(e);
 		}

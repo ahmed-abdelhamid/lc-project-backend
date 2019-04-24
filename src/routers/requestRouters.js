@@ -2,7 +2,7 @@ const express = require('express');
 const Request = require('../models/requestModel');
 const Supplier = require('../models/supplierModel');
 const Extension = require('../models/extensionModel');
-const Amendement = require('../models/amendementModel');
+const Amendment = require('../models/amendmentModel');
 const Lc = require('../models/lcModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
@@ -188,7 +188,7 @@ router.patch(
 	auth({ canAdd: true }),
 	async ({ params, body, user }, res) => {
 		let extension;
-		let amendement;
+		let amendment;
 		const { lcId, notes, upTo, amount } = body;
 		try {
 			const request = await Request.findById(params.id);
@@ -209,19 +209,19 @@ router.patch(
 			}
 
 			if (amount) {
-				// New Amendement
-				amendement = new Amendement({
+				// New Amendment
+				amendment = new Amendment({
 					requestId: params.id,
 					createdBy: user._id,
 					lcId,
 					notes,
 					amount
 				});
-				await amendement.save();
+				await amendment.save();
 			}
 			request.state = 'executed';
 			await request.save();
-			res.status(201).send({ extension, amendement });
+			res.status(201).send({ extension, amendment });
 		} catch (e) {
 			res.status(400).send(e);
 		}

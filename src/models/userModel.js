@@ -91,8 +91,8 @@ userSchema.virtual('extensions', {
 	foreignField: 'createdBy'
 });
 
-userSchema.virtual('amendements', {
-	ref: 'Amendement',
+userSchema.virtual('amendments', {
+	ref: 'Amendment',
 	localField: '_id',
 	foreignField: 'createdBy'
 });
