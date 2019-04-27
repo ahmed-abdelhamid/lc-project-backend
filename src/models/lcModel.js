@@ -3,10 +3,10 @@ const Supplier = require('./supplierModel');
 const Request = require('./requestModel');
 
 const lcSchema = new mongoose.Schema({ 
-	supplierId: {
+	contractId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
-		ref: 'Supplier'
+		ref: 'Contract'
 	},
 	createdBy: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -29,6 +29,16 @@ const lcSchema = new mongoose.Schema({
 		default: true,
 		required: false
 	},
+	advancedPaymentCondition: {
+		type: String,
+		enum: ['at sight', '30', '60'],
+		required: true
+	},
+	otherPaymentsCondition: {
+		type: String,
+		enum: ['at sight', '30', '60'],
+		required: true
+	}
 });
 
 lcSchema.virtual('extensions', {

@@ -101,8 +101,8 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		if (!supplier) {
 			throw new Error();
 		}
-		await supplier.populate('lcs').execPopulate();
-		res.send(supplier.lcs);
+		await supplier.populate('contracts').populate('lcs').execPopulate();
+		res.send(supplier.contracts.lcs);
 	} catch (e) {
 		res.status(404).send();
 	}

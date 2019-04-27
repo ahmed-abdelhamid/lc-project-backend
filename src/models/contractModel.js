@@ -51,6 +51,12 @@ contractSchema.virtual('payments', {
 	foreignField: 'contractId'
 });
 
+contractSchema.virtual('lcs', {
+	ref: 'Lc',
+	localField: '_id',
+	foreignField: 'contractId'
+});
+
 contractSchema.pre('save', async function(next) {
 	const contract = this;
 
