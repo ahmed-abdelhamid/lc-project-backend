@@ -1,6 +1,7 @@
 const express = require('express');
 const Lc = require('../models/lcModel');
 const Amendment = require('../models/amendmentModel');
+const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -41,27 +42,41 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	}
 });
 
-// Edit amendment data
-router.patch(
-	'',
-	auth({ canAdd: true }),
-	async ({ body }, res) => {
-		const updates = {};
-		const allowedUpdates = ['lcId', 'amount', 'notes'];
-		allowedUpdates.map(update => updates[update] = body[update]);
-		try {
-			const amendment = await Amendment.findByIdAndUpdate(body._id, updates, {
-				new: true,
-				runValidators: true
-			});
-			if (!amendment) {
-				throw new Error();
-			}
-			res.send(amendment);
-		} catch (e) {
-			res.status(400).send(e);
+// Get amendments for specific supplier
+router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.supplierId);
+		if (!supplier) {
+			throw new Error();
 		}
+		await supplier
+			.populate('contracts')
+			.populate('lcs')
+			.populate('amendments')
+			.execPopulate();
+		res.send(supplier.contracts.lcs.amendments);
+	} catch (e) {
+		res.status(404).send();
 	}
-);
+});
+
+// Edit amendment data
+router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+	const updates = {};
+	const allowedUpdates = ['lcId', 'amount', 'notes'];
+	allowedUpdates.map(update => (updates[update] = body[update]));
+	try {
+		const amendment = await Amendment.findByIdAndUpdate(body._id, updates, {
+			new: true,
+			runValidators: true
+		});
+		if (!amendment) {
+			throw new Error();
+		}
+		res.send(amendment);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 module.exports = router;
