@@ -76,7 +76,6 @@ router.patch(
 			'expiryDate',
 			'amount',
 			'notes',
-			'previouslyPaidInCash',
 			'previouslyPaidWithInvoice'
 		];
 		allowedUpdates.map(update => updates[update] = body[update]);

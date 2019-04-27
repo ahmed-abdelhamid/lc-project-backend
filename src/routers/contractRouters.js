@@ -94,7 +94,8 @@ router.patch(
 			'notes',
 			'supplierId',
 			'date',
-			'state'
+			'state',
+			'previouslyPaidInCash'
 		];
 		allowedUpdates.map(update => updates[update] = body[update]);
 		try {

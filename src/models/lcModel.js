@@ -23,7 +23,6 @@ const lcSchema = new mongoose.Schema({
 	expiryDate: { type: Date, required: true },
 	amount: { type: Number, required: true },
 	notes: { type: String, trim: true },
-	previouslyPaidInCash: { type: Number },
 	previouslyPaidWithInvoice: { type: Number },
 	active: {
 		type: Boolean,
