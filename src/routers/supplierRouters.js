@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 // const fileType = require('file-type');
 const Supplier = require('../models/supplierModel');
+const Contract = require('../models/contractModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -12,7 +13,7 @@ const upload = multer({
 			cb(new Error('All files should be in PDF format'));
 		}
 		cb(undefined, true);
-	}
+	},
 });
 
 // Upload documents
@@ -28,23 +29,19 @@ router.post(
 	},
 	(error, req, res) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Create new supplier
-router.post(
-	'',
-	auth({ canRegister: true }),
-	async ({ user, body }, res) => {
-		const supplier = new Supplier({ ...body, createdBy: user._id });
-		try {
-			await supplier.save();
-			res.status(201).send(supplier);
-		} catch (e) {
-			res.status(400).send(e);
-		}
+router.post('', auth({ canRegister: true }), async ({ user, body }, res) => {
+	const supplier = new Supplier({ ...body, createdBy: user._id });
+	try {
+		await supplier.save();
+		res.status(201).send(supplier);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Read all suppliers
 router.get('', auth(), async (req, res) => {
@@ -69,35 +66,70 @@ router.get('/:id', auth(), async ({ params }, res) => {
 	}
 });
 
-// Update supplier data
-router.patch(
-	'',
-	auth({ canRegister: true }),
-	async ({ body }, res) => {
-		const updates = {};
-		const allowedUpdates = [
-			'name',
-			'specialization',
-			'notes',
-			'vatRegisteration',
-			'crRegisteration',
-			'state'
-		];
-		allowedUpdates.map(update => updates[update] = body[update]);
-		try {
-			const supplier = await Supplier.findByIdAndUpdate(body._id, updates, {
-				new: true,
-				runValidators: true
-			});
-			if (!supplier) {
-				throw new Error();
-			}
-			res.send(supplier);
-		} catch (e) {
-			res.status(400).send(e);
+// Read supplier for contract
+router.get('contract/:id', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contarct.findById(params.id);
+		if (!contarct) {
+			return res.status(404).send();
 		}
+		await contract.populate('supplier');
+		res.send(supplier);
+	} catch (e) {
+		res.status(500).send();
 	}
-);
+});
+
+// Read supplier for lc
+router.get('/:id', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.id);
+		if (!supplier) {
+			return res.status(404).send();
+		}
+		res.send(supplier);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+// Read supplier for request
+router.get('/:id', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.id);
+		if (!supplier) {
+			return res.status(404).send();
+		}
+		res.send(supplier);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+
+// Update supplier data
+router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
+	const updates = {};
+	const allowedUpdates = [
+		'name',
+		'specialization',
+		'notes',
+		'vatRegisteration',
+		'crRegisteration',
+		'state',
+	];
+	allowedUpdates.map(update => (updates[update] = body[update]));
+	try {
+		const supplier = await Supplier.findByIdAndUpdate(body._id, updates, {
+			new: true,
+			runValidators: true,
+		});
+		if (!supplier) {
+			throw new Error();
+		}
+		res.send(supplier);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // router.patch(
 // 	'/:id',

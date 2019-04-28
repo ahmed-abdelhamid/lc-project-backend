@@ -6,39 +6,43 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new payment request
-router.post('',
-	auth({ canRequest: true }),
-	async ({ body, user }, res) => {
-		const paymentRequest = new PaymentRequest({
-			...body,
-			requestedBy: user._id
-		});
-		try {
-			await paymentRequest.save();
-			res.status(201).send(paymentRequest);
-		} catch (e) {
-			res.status(400).send(e);
-		}
+router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
+	const paymentRequest = new PaymentRequest({
+		...body,
+		requestedBy: user._id,
+	});
+	try {
+		await paymentRequest.save();
+		res.status(201).send(paymentRequest);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Get payment requests for specific supplier
-router.get(
-	'/supplier/:supplierId',
-	auth(),
-	async ({ params }, res) => {
-		try {
-			const supplier = await Supplier.findById(params.supplierId);
-			if (!supplier) {
-				throw new Error();
-			}
-			await supplier.populate('paymentRequests').execPopulate();
-			res.send(supplier.paymentRequests);
-		} catch (e) {
-			res.status(404).send();
+router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.supplierId);
+		if (!supplier) {
+			throw new Error();
 		}
+		await supplier
+			.populate('contracts')
+			.populate('paymentRequests')
+			.execPopulate();
+		await supplier
+			.populate('contracts')
+			.populate('lcs')
+			.populate('paymentRequests')
+			.execPopulate();
+		res.send({
+			cash: supplier.contratcs.paymentRequests,
+			lc: supplier.contracts.lcs.paymentRequests,
+		});
+	} catch (e) {
+		res.status(404).send();
 	}
-);
+});
 
 // Get all payment requests
 router.get('', auth(), async (req, res) => {
@@ -64,35 +68,40 @@ router.get('/:id', auth(), async ({ params }, res) => {
 });
 
 // Modify payment request only if still new
-router.patch(
-	'',
-	auth({ canRequest: true }),
-	async ({ body }, res) => {
-		const updates = {};
-		const allowedUpdates = [
-			'supplierId',
-			'contactId',
-			'amount',
-			'type',
-			'lcId',
-			'notes'
-		];
-		allowedUpdates.map(update => updates[update] = body[update]);
-		try {
-			const paymentRequest = await PaymentRequest.findById(body._id);
-			if (!paymentRequest || paymentRequest.state === 'approved' || paymentRequest.state === 'inprogress' || user._id !== paymentRequest.requestedBy) {
-				throw new Error();
-			}
-			updates.forEach(update => (paymentRequest[update] = updates[update]));
-			paymentRequest.state = 'new';
-			paymentRequest.notes.concat(paymentRequest.notes, ' ==> ', 'updated and needs new approval');
-			await paymentRequest.save();
-			res.send(paymentRequest);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('', auth({ canRequest: true }), async ({ body }, res) => {
+	const updates = {};
+	const allowedUpdates = [
+		'supplierId',
+		'contactId',
+		'amount',
+		'type',
+		'lcId',
+		'notes',
+	];
+	allowedUpdates.map(update => (updates[update] = body[update]));
+	try {
+		const paymentRequest = await PaymentRequest.findById(body._id);
+		if (
+			!paymentRequest ||
+			paymentRequest.state === 'approved' ||
+			paymentRequest.state === 'inprogress' ||
+			user._id !== paymentRequest.requestedBy
+		) {
+			throw new Error();
 		}
+		updates.forEach(update => (paymentRequest[update] = updates[update]));
+		paymentRequest.state = 'new';
+		paymentRequest.notes.concat(
+			paymentRequest.notes,
+			' ==> ',
+			'updated and needs new approval',
+		);
+		await paymentRequest.save();
+		res.send(paymentRequest);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Approve request
 router.patch(
@@ -110,7 +119,7 @@ router.patch(
 		} catch (e) {
 			res.status(400).send(e);
 		}
-	}
+	},
 );
 
 // Inprogressing request
@@ -129,7 +138,7 @@ router.patch(
 		} catch (e) {
 			res.status(400).send(e);
 		}
-	}
+	},
 );
 
 // delete Request
@@ -139,12 +148,15 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 		// check for request
 		if (!paymentRequest) {
 			throw new Error();
-		// check if executed or inprogress that the delete canAdd = true
-		}else if (paymentRequest.state === 'executed' || paymentRequest.state === 'inprogress') {
+			// check if executed or inprogress that the delete canAdd = true
+		} else if (
+			paymentRequest.state === 'executed' ||
+			paymentRequest.state === 'inprogress'
+		) {
 			if (user.canAdd !== true) {
 				throw new Error();
 			}
-		// if request is new or approved check if the requester is the deleter
+			// if request is new or approved check if the requester is the deleter
 		} else if (user._id !== paymentRequest.requestedBy) {
 			throw new Error();
 		}
@@ -171,13 +183,11 @@ router.patch(
 
 			payment = new Payment({
 				paymentRequestId: paymentRequest._id,
-				supplierId: paymentRequest.supplierId,
 				contractId: paymentRequest.contractId,
 				createdBy: user._id,
 				createdAt: paymentRequest.createdAt,
 				type: paymentRequest.type,
-				dateOfRequest: paymentRequest.createdAt
-				
+				dateOfRequest: paymentRequest.createdAt,
 			});
 
 			if (paymentRequest.type === 'lc') {
@@ -192,11 +202,11 @@ router.patch(
 			await payment.save();
 			paymentRequest.state = 'executed';
 			await paymentRequest.save();
-			res.status(201).send(payment);
+			res.status(201).send(paymentRequest);
 		} catch (e) {
 			res.status(400).send(e);
 		}
-	}
+	},
 );
 
 module.exports = router;

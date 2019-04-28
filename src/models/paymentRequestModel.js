@@ -5,46 +5,40 @@ const Lc = require('./lcModel');
 
 const paymentRequestSchema = new mongoose.Schema(
 	{
-		supplierId: {
-			type: mongoose.Schema.Types.ObjectId,
-			required: true,
-			ref: 'Supplier'
-		},
 		contractId: {
 			type: mongoose.Schema.Types.ObjectId,
-			required: true,
-			ref: 'Contract'
+			ref: 'Contract',
 		},
 		amount: { type: Number, required: true },
 		state: {
 			type: String,
 			enum: ['new', 'approved', 'inprogress', 'executed', 'canceled'],
 			default: 'new',
-			required: true
+			required: true,
 		},
 		type: {
 			type: String,
 			enum: ['cash', 'lc'],
-			required: true
+			required: true,
 		},
 		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc'
+			ref: 'Lc',
 		},
 		requestedBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
-		notes: { type: String, trim: true }
+		notes: { type: String, trim: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 paymentRequestSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'paymentRequestId'
+	foreignField: 'paymentRequestId',
 });
 
 paymentRequestSchema.pre('save', async function(next) {
@@ -61,16 +55,12 @@ paymentRequestSchema.pre('save', async function(next) {
 		}
 	}
 
-	const supplier = await Supplier.findById(paymentRequest.supplierId);
-	if (!supplier) {
-		throw new Error('Supplier not found');
+	if (paymentRequest.contractId) {
+		const contract = await Contract.findById(paymentRequest.contractId);
+		if (!contract) {
+			throw new Error('Contract not found');
+		}
 	}
-
-	const contract = await Contract.findById(paymentRequest.contractId);
-	if (!contract) {
-		throw new Error('Contract not found');
-	}
-
 	next();
 });
 
@@ -82,7 +72,7 @@ paymentRequestSchema.post('find', async function(docs) {
 
 const PaymentRequest = new mongoose.model(
 	'PaymentRequest',
-	paymentRequestSchema
+	paymentRequestSchema,
 );
 
 module.exports = PaymentRequest;
