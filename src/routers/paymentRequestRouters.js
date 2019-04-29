@@ -9,7 +9,7 @@ const router = new express.Router();
 router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
 	const paymentRequest = new PaymentRequest({
 		...body,
-		requestedBy: user._id,
+		createdBy: user._id,
 	});
 	try {
 		await paymentRequest.save();
@@ -67,7 +67,7 @@ router.get('/:id', auth(), async ({ params }, res) => {
 	}
 });
 
-// Modify payment request only if still new
+// Modify payment request only if still new or approved
 router.patch('', auth({ canRequest: true }), async ({ body }, res) => {
 	const updates = {};
 	const allowedUpdates = [
@@ -91,11 +91,11 @@ router.patch('', auth({ canRequest: true }), async ({ body }, res) => {
 		}
 		updates.forEach(update => (paymentRequest[update] = updates[update]));
 		paymentRequest.state = 'new';
-		paymentRequest.notes.concat(
-			paymentRequest.notes,
-			' ==> ',
-			'updated and needs new approval',
-		);
+		// paymentRequest.notes.concat(
+		// 	paymentRequest.notes,
+		// 	' ==> ',
+		// 	'updated and needs new approval',
+		// );
 		await paymentRequest.save();
 		res.send(paymentRequest);
 	} catch (e) {
@@ -148,7 +148,7 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 		// check for request
 		if (!paymentRequest) {
 			throw new Error();
-			// check if executed or inprogress that the delete canAdd = true
+			// check if executed or inprogress and the deleter canAdd = true
 		} else if (
 			paymentRequest.state === 'executed' ||
 			paymentRequest.state === 'inprogress'
@@ -183,14 +183,13 @@ router.patch(
 
 			payment = new Payment({
 				paymentRequestId: paymentRequest._id,
-				contractId: paymentRequest.contractId,
+				// contractId: paymentRequest.contractId,
 				createdBy: user._id,
 				createdAt: paymentRequest.createdAt,
-				type: paymentRequest.type,
-				dateOfRequest: paymentRequest.createdAt,
+				// dateOfRequest: paymentRequest.createdAt, ==> no need , we can get the request of payment date
 			});
 
-			if (paymentRequest.type === 'lc') {
+			if (paymentRequest.lcId) {
 				payment.lcId = paymentRequest.lcId;
 				payment.amount = paymentRequest.amount;
 				payment.notes = paymentRequest.notes;

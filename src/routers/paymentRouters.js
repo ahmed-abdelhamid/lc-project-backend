@@ -46,7 +46,7 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 // Get payments for specific supplier
 router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	try {
-		const supplier = await Supplier.findById(params.lcId);
+		const supplier = await Supplier.findById(params.supplierId);
 		if (!supplier) {
 			throw new Error();
 		}
@@ -61,7 +61,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			.execPopulate();
 		res.send({
 			cash: supplier.contracts.payments,
-			lc: supplier.contracts.lcs.payments
+			lc: supplier.contracts.lcs.payments,
 		});
 	} catch (e) {
 		res.status(404).send();
@@ -71,7 +71,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 // Get payments for specific contract
 router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 	try {
-		const contract = await Contract.findById(params.lcId);
+		const contract = await Contract.findById(params.contractId);
 		if (!contract) {
 			throw new Error();
 		}
@@ -87,7 +87,7 @@ router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
 	const allowedUpdates = ['amount', 'notes'];
 	try {
 		const payment = await Payment.findById(body._id);
-		if (!payment || payment.type === 'lc') {
+		if (!payment || !payment.contractId) {
 			throw new Error();
 		}
 		allowedUpdates.map(update => (payment[update] = body[update]));

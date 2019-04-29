@@ -7,22 +7,22 @@ const amendmentSchema = new mongoose.Schema(
 		requestId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'Request'
+			ref: 'Request',
 		},
 		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'Lc'
+			ref: 'Lc',
 		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
 		amount: { type: Number, required: true },
-		notes: { type: String, trim: true }
+		notes: { type: String, trim: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 amendmentSchema.pre('save', async function(next) {
@@ -37,6 +37,8 @@ amendmentSchema.pre('save', async function(next) {
 	if (!lc) {
 		throw new Error({ error: 'Lc not found' });
 	}
+
+	// need to check if the lc is not expired
 
 	next();
 });

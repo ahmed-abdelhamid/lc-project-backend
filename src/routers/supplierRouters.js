@@ -3,6 +3,13 @@ const multer = require('multer');
 // const fileType = require('file-type');
 const Supplier = require('../models/supplierModel');
 const Contract = require('../models/contractModel');
+const Appendix = require('../models/appendixModel');
+const Lc = require('../models/lcModel');
+const Request = require('../models/requestModel');
+const PaymentRequest = require('../models/paymentRequestModel');
+const Payment = require('../models/paymentModel');
+const Extension = require('../models/extensionModel');
+const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -69,36 +76,114 @@ router.get('/:id', auth(), async ({ params }, res) => {
 // Read supplier for contract
 router.get('contract/:id', auth(), async ({ params }, res) => {
 	try {
-		const contract = await Contarct.findById(params.id);
-		if (!contarct) {
+		const contract = await Contract.findById(params.id);
+		if (!contract) {
 			return res.status(404).send();
 		}
-		await contract.populate('supplier');
-		res.send(supplier);
+		await contract.populate('supplierId').execPopulate();
+		res.send(contract.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 
 // Read supplier for lc
-router.get('/:id', auth(), async ({ params }, res) => {
+router.get('lc/:id', auth(), async ({ params }, res) => {
 	try {
-		const supplier = await Supplier.findById(params.id);
-		if (!supplier) {
+		const lc = await Lc.findById(params.id);
+		if (!lc) {
 			return res.status(404).send();
 		}
-		res.send(supplier);
+		await lc
+			.populate('contractId')
+			.populate('supplierId')
+			.execPopulate();
+		res.send(lc.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 // Read supplier for request
-router.get('/:id', auth(), async ({ params }, res) => {
+router.get('request/:id', auth(), async ({ params }, res) => {
 	try {
-		const supplier = await Supplier.findById(params.id);
-		if (!supplier) {
+		const request = await Request.findById(params.id);
+		if (!request) {
 			return res.status(404).send();
 		}
+		await request
+			.populate('lcId')
+			.populate('contractId')
+			.populate('supplierId')
+			.execPopulate();
+		res.send(supplier);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+// Read supplier for paymentRequest
+router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
+	try {
+		const paymentRequest = await PaymentRequest.findById(params.id);
+		if (!paymentRequest) {
+			return res.status(404).send();
+		}
+		if (paymentRequest.lcId) {
+			await request
+				.populate('lcId')
+				.populate('contractId')
+				.populate('supplierId')
+				.execPopulate();
+			res.send(paymentRequest.lcId.contarctId.supplierId);
+		} else {
+			await request
+				.populate('contractId')
+				.populate('supplierId')
+				.execPopulate();
+			res.send(paymentRequest.contarctId.supplierId);
+		}
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+
+// Read supplier for payment
+router.get('payment/:id', auth(), async ({ params }, res) => {
+	try {
+		const payment = await Payment.findById(params.id);
+		if (!request) {
+			return res.status(404).send();
+		}
+		if (payment.lcId) {
+			await request
+				.populate('lcId')
+				.populate('contractId')
+				.populate('supplierId')
+				.execPopulate();
+			res.send(payment.lcId.contarctId.supplierId);
+		} else {
+			await request
+				.populate('contractId')
+				.populate('supplierId')
+				.execPopulate();
+			res.send(payment.contarctId.supplierId);
+		}
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+
+// Read supplier for extension
+router.get('extension/:id', auth(), async ({ params }, res) => {
+	try {
+		const extension = await Extension.findById(params.id);
+		if (!extension) {
+			return res.status(404).send();
+		}
+		await extension
+			.populate('lcId')
+			.populate('contractId')
+			.populate('supplierId')
+			.execPopulate();
 		res.send(supplier);
 	} catch (e) {
 		res.status(500).send();

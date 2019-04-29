@@ -1,16 +1,11 @@
 const mongoose = require('mongoose');
-const Supplier = require('./supplierModel');
+const Lc = require('./lcModel');
 
 const requestSchema = new mongoose.Schema(
 	{
-		lcId:{
+		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc'
-		},
-		supplierId: {
-			type: mongoose.Schema.Types.ObjectId,
-			required: true,
-			ref: 'Supplier'
+			ref: 'Lc',
 		},
 		upTo: { type: Date },
 		amount: { type: Number },
@@ -18,41 +13,40 @@ const requestSchema = new mongoose.Schema(
 			type: String,
 			enum: ['new', 'approved', 'inprogress', 'executed', 'deleted'],
 			default: 'new',
-			required: true
+			required: true,
 		},
-		requestedBy: {
+		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
-		notes: { type: String, trim: true }
+		notes: { type: String, trim: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
-
 
 requestSchema.virtual('extensions', {
 	ref: 'Extension',
 	localField: '_id',
-	foreignField: 'requestId'
+	foreignField: 'requestId',
 });
 
 requestSchema.virtual('amendments', {
 	ref: 'Amendment',
 	localField: '_id',
-	foreignField: 'requestId'
+	foreignField: 'requestId',
 });
 
 requestSchema.pre('save', async function(next) {
 	const request = this;
 
 	if (!request.upTo && !request.amount) {
-		throw new Error('You need to provide new date or new amount or both');
+		throw new Error('You need to provide new date or new amount!');
 	}
 
-	const supplier = await Supplier.findById(request.supplierId);
-	if (!supplier) {
-		throw new Error('Supplier not found');
+	const lc = await Lc.findById(request.lcId);
+	if (!lc) {
+		throw new Error('Lc not found');
 	}
 
 	next();
@@ -60,7 +54,7 @@ requestSchema.pre('save', async function(next) {
 
 requestSchema.post('find', async function(docs) {
 	for (let doc of docs) {
-		await doc.populate('requestedBy', 'name').execPopulate();
+		await doc.populate('createdBy', 'name').execPopulate();
 	}
 });
 

@@ -3,6 +3,7 @@ const Request = require('../models/requestModel');
 const Supplier = require('../models/supplierModel');
 const Extension = require('../models/extensionModel');
 const Amendment = require('../models/amendmentModel');
+const Contract = require('../models/contractModel');
 const Lc = require('../models/lcModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
@@ -11,16 +12,15 @@ const router = new express.Router();
 router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
 	const request = new Request({
 		...body,
-		requestedBy: user._id,
+		createdBy: user._id,
 	});
 
 	try {
-		if (request.lcId) {
-			const lc = await Lc.findById(request.lcId);
-			if (!lc) {
-				throw new Error();
-			}
+		const lc = await Lc.findById(request.lcId);
+		if (!lc) {
+			throw new Error('Lc not found!');
 		}
+
 		await request.save();
 		res.status(201).send(request);
 	} catch (e) {
@@ -33,7 +33,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.supplierId);
 		if (!supplier) {
-			throw new Error();
+			throw new Error('Supplier not found!');
 		}
 		await supplier
 			.populate('contracts')
@@ -51,9 +51,25 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.lcId);
 		if (!lc) {
-			throw new Error();
+			throw new Error('Lc not found!');
 		}
 		await lc.populate('requests').execPopulate();
+		res.send(lc.requests);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+// Get requests for specific contract
+router.get('/contract/:contractId', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.contractId);
+		if (!contract) {
+			throw new Error('Contract not found!');
+		}
+		await contract
+			.populate('lcs')
+			.populate('requests')
+			.execPopulate();
 		res.send(lc.requests);
 	} catch (e) {
 		res.status(404).send();
@@ -90,19 +106,20 @@ router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
 		const request = await Request.findById(body._id);
+		// note that the createdBy field now = {_id, name}
 		// only if request still new or approved
 		if (
 			!request ||
 			request.state === 'executed' ||
 			request.state === 'inprogress' ||
-			user._id.toString() !== request.requestedBy.toString()
+			request.state === 'deleted' ||
+			user._id !== request.createdBy._id
 		) {
 			throw new Error();
 		}
 		allowedUpdates.map(update => (request[update] = updates[update]));
-		// after modify the state will return new and notes will be updated
+		// after modify the state will return new
 		request.state = 'new';
-		// need to show updates in frontend
 		await request.save();
 		res.send(request);
 	} catch (e) {
@@ -157,6 +174,10 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 			throw new Error();
 			// check if executed or inprogress that the delete canAdd = true
 		} else if (request.state === 'executed' || request.state === 'inprogress') {
+			if (user.canAdd !== true) {
+				throw new Error();
+			}
+		} else if (request.state === 'new' || request.state === 'approved') {
 			if (user.canAdd !== true) {
 				throw new Error();
 			}

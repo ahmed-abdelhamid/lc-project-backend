@@ -9,6 +9,10 @@ const paymentRequestSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Contract',
 		},
+		lcId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Lc',
+		},
 		amount: { type: Number, required: true },
 		state: {
 			type: String,
@@ -16,16 +20,7 @@ const paymentRequestSchema = new mongoose.Schema(
 			default: 'new',
 			required: true,
 		},
-		type: {
-			type: String,
-			enum: ['cash', 'lc'],
-			required: true,
-		},
-		lcId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc',
-		},
-		requestedBy: {
+		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
 			ref: 'User',
@@ -43,10 +38,6 @@ paymentRequestSchema.virtual('payments', {
 
 paymentRequestSchema.pre('save', async function(next) {
 	const paymentRequest = this;
-
-	if (paymentRequest.type === 'lc' && !paymentRequest.lcId) {
-		throw new Error('Please Provide Lc');
-	}
 
 	if (paymentRequest.lcId) {
 		const lc = await Lc.findById(paymentRequest.lcId);

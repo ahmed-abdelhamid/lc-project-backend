@@ -59,15 +59,32 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	}
 });
 
+// Get extensions for specific contract
+router.get('/contract/:contractId', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.contractId);
+		if (!contract) {
+			throw new Error();
+		}
+		await contract
+			.populate('lcs')
+			.populate('extensions')
+			.execPopulate();
+		res.send(contract.lcs.extensions);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+
 // Edit extension data
 router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
 	const updates = {};
-	const allowedUpdates = ['lcId', 'upTo', 'notes'];
+	const allowedUpdates = ['upTo', 'notes'];
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
 		const extension = await Extension.findByIdAndUpdate(body._id, updates, {
 			new: true,
-			runValidators: true
+			runValidators: true,
 		});
 		if (!extension) {
 			throw new Error();
