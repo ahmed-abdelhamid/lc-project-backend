@@ -46,7 +46,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.supplierId);
 		if (!supplier) {
-			throw new Error();
+			throw new Error('supplier not found for extesnion');
 		}
 		await supplier
 			.populate('contracts')
@@ -55,7 +55,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			.execPopulate();
 		res.send(supplier.contracts.lcs.extensions);
 	} catch (e) {
-		res.status(404).send();
+		res.status(404).send(e);
 	}
 });
 

@@ -13,15 +13,12 @@ router.post(
 		const requestId = params.id;
 		const lc = new Lc({
 			...body,
-			// requestsId: [{requestId}],
-			createdBy: user._id
+			lcRequestId: requestId,
+			createdBy: user._id,
 		});
-		// lc.requestsId.unshift({requestId});
-		
+
 		try {
-			
-			const request = await Request.findById(requestId);
-			console.log(request);
+			const request = await LcRequest.findById(requestId);
 			if (!request || request.state !== 'inprogress') {
 				throw new Error('request not found');
 			}
@@ -32,7 +29,7 @@ router.post(
 		} catch (e) {
 			res.status(400).send(e);
 		}
-	}
+	},
 );
 
 // Get all lcs
@@ -59,40 +56,37 @@ router.get('/:id', auth(), async ({ params }, res) => {
 });
 
 // Update lc by id
-router.patch(
-	'',
-	auth({ canAdd: true }),
-	async ({ body }, res) => {
-		const updates = {};
-		const allowedUpdates = [
-			'supplierId',
-			'issuer',
-			'bankName',
-			'number',
-			'openingCommission',
-			'serviceCharge',
-			'editCommission',
-			'issueDate',
-			'expiryDate',
-			'amount',
-			'notes',
-			'previouslyPaidWithInvoice'
-		];
-		allowedUpdates.map(update => updates[update] = body[update]);
-		try {
-			const lc = await Lc.findByIdAndUpdate(body._id, updates, {
-				new: true,
-				runValidators: true
-			});
-			if (!lc) {
-				throw new Error();
-			}
-			res.send(lc);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+	const updates = {};
+	const allowedUpdates = [
+		'issuer',
+		'bankName',
+		'number',
+		'openingCommission',
+		'serviceCharge',
+		'editCommission',
+		'issueDate',
+		'expiryDate',
+		'amount',
+		'notes',
+		'previouslyPaidWithInvoice',
+		'advancedPaymentCondition',
+		'otherPaymentsCondition',
+	];
+	allowedUpdates.map(update => (updates[update] = body[update]));
+	try {
+		const lc = await Lc.findByIdAndUpdate(body._id, updates, {
+			new: true,
+			runValidators: true,
+		});
+		if (!lc) {
+			throw new Error();
 		}
+		res.send(lc);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Get lcs for specific suppliers
 router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
@@ -101,7 +95,10 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		if (!supplier) {
 			throw new Error();
 		}
-		await supplier.populate('contracts').populate('lcs').execPopulate();
+		await supplier
+			.populate('contracts')
+			.populate('lcs')
+			.execPopulate();
 		res.send(supplier.contracts.lcs);
 	} catch (e) {
 		res.status(404).send();

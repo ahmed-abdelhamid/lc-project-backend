@@ -176,7 +176,7 @@ router.patch(
 		let payment;
 		const { notes, amount } = body;
 		try {
-			const paymentRequest = await PaymentRequest.findById(body._id);
+			const paymentRequest = await PaymentRequ.est.findById(body._id);
 			if (!paymentRequest || paymentRequest.state !== 'inprogress') {
 				throw new Error();
 			}

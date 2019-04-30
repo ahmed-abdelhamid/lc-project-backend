@@ -86,6 +86,22 @@ router.get('contract/:id', auth(), async ({ params }, res) => {
 		res.status(500).send();
 	}
 });
+// Read supplier for appendix
+router.get('appendix/:id', auth(), async ({ params }, res) => {
+	try {
+		const appendix = await Appendix.findById(params.id);
+		if (!appendix) {
+			return res.status(404).send();
+		}
+		await appendix
+			.populate('contractId')
+			.populate('supplierId')
+			.execPopulate();
+		res.send(appendix.contractId.supplierId);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
 
 // Read supplier for lc
 router.get('lc/:id', auth(), async ({ params }, res) => {
@@ -180,6 +196,23 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 			return res.status(404).send();
 		}
 		await extension
+			.populate('lcId')
+			.populate('contractId')
+			.populate('supplierId')
+			.execPopulate();
+		res.send(supplier);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+// Read supplier for amendment
+router.get('amendment/:id', auth(), async ({ params }, res) => {
+	try {
+		const amendment = await Amendment.findById(params.id);
+		if (!amendment) {
+			return res.status(404).send();
+		}
+		await amendment
 			.populate('lcId')
 			.populate('contractId')
 			.populate('supplierId')

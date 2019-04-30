@@ -42,7 +42,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			.execPopulate();
 		res.send(supplier.contracts.lcs.requests);
 	} catch (e) {
-		res.status(404).send();
+		res.status(404).send(e);
 	}
 });
 
@@ -80,6 +80,16 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 router.get('', auth(), async (req, res) => {
 	try {
 		const requests = await Request.find();
+		res.send(requests);
+	} catch (e) {
+		res.status(500).send();
+	}
+});
+
+// Get requests by state
+router.get('/state/:state', auth(), async (req, res) => {
+	try {
+		const requests = await Request.find({ state: params.state });
 		res.send(requests);
 	} catch (e) {
 		res.status(500).send();
@@ -196,14 +206,14 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 
 // Executing request
 router.patch(
-	'/:id/execute',
+	'/execute',
 	auth({ canAdd: true }),
-	async ({ params, body, user }, res) => {
+	async ({ body, user }, res) => {
 		let extension;
 		let amendment;
 		const { lcId, notes, upTo, amount } = body;
 		try {
-			const request = await Request.findById(params.id);
+			const request = await Request.findById(body._id);
 			if (!request || request.state !== 'inprogress') {
 				throw new Error();
 			}
@@ -211,7 +221,7 @@ router.patch(
 			if (upTo) {
 				// New Extension
 				extension = new Extension({
-					requestId: params.id,
+					requestId: request._id,
 					createdBy: user._id,
 					lcId,
 					notes,
@@ -223,7 +233,7 @@ router.patch(
 			if (amount) {
 				// New Amendment
 				amendment = new Amendment({
-					requestId: params.id,
+					requestId: request._id,
 					createdBy: user._id,
 					lcId,
 					notes,

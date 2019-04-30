@@ -1,17 +1,20 @@
 const mongoose = require('mongoose');
-const Supplier = require('./supplierModel');
-const Request = require('./requestModel');
 
-const lcSchema = new mongoose.Schema({ 
+const lcSchema = new mongoose.Schema({
+	requestId: {
+		type: mongoose.Schema.Types.ObjectId,
+		required: true,
+		ref: 'LcRequest',
+	},
 	contractId: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
-		ref: 'Contract'
+		ref: 'Contract',
 	},
 	createdBy: {
 		type: mongoose.Schema.Types.ObjectId,
 		required: true,
-		ref: 'User'
+		ref: 'User',
 	},
 	issuer: { type: String, required: true, trim: true },
 	bankName: { type: String, required: true, trim: true },
@@ -27,80 +30,78 @@ const lcSchema = new mongoose.Schema({
 	active: {
 		type: Boolean,
 		default: true,
-		required: false
+		required: true,
 	},
 	advancedPaymentCondition: {
 		type: String,
-		enum: ['at sight', '30', '60'],
-		required: true
+		enum: ['at sight', '30 days', '60 days'],
+		required: true,
 	},
 	otherPaymentsCondition: {
 		type: String,
-		enum: ['at sight', '30', '60'],
-		required: true
-	}
+		enum: ['at sight', '30 days', '60 days'],
+		required: true,
+	},
 });
 
 lcSchema.virtual('extensions', {
 	ref: 'Extension',
 	localField: '_id',
-	foreignField: 'lcId'
+	foreignField: 'lcId',
 });
 
 lcSchema.virtual('amendments', {
 	ref: 'Amendment',
 	localField: '_id',
-	foreignField: 'lcId'
+	foreignField: 'lcId',
 });
 
 lcSchema.virtual('paymentRequests', {
 	ref: 'PaymentRequest',
 	localField: '_id',
-	foreignField: 'lcId'
+	foreignField: 'lcId',
 });
 
 lcSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'lcId'
+	foreignField: 'lcId',
 });
 
 lcSchema.virtual('requests', {
 	ref: 'Request',
 	localField: '_id',
-	foreignField: 'lcId'
+	foreignField: 'lcId',
 });
 
-lcSchema.pre('save', async function(next) {
-	const lc = this;
+// lcSchema.pre('save', async function(next) {
+// 	const lc = this;
 
-	const supplier = await Supplier.findById(lc.supplierId);
-	if (!supplier) {
-		throw new Error({ error: 'Supplier not found' });
-	}
+// 	const supplier = await Supplier.findById(lc.supplierId);
+// 	if (!supplier) {
+// 		throw new Error({ error: 'Supplier not found' });
+// 	}
 
-	// const request = await Request.findById(params.id);
-	// if (!request) {
-	// 	throw new Error({ error: 'Request not found' });
-	// }
+// const request = await Request.findById(params.id);
+// if (!request) {
+// 	throw new Error({ error: 'Request not found' });
+// }
 
-	// if (supplier._id.toString() !== request.supplierId.toString()) {
-	// 	throw new Error({
-	// 		error: 'Supplier in request should match supplier in lc'
-	// 	});
-	// }
+// if (supplier._id.toString() !== request.supplierId.toString()) {
+// 	throw new Error({
+// 		error: 'Supplier in request should match supplier in lc'
+// 	});
+// }
 
+// if (request.state !== 'inprogress') {
+// 	throw new Error({ error: 'Can\'t execute this request' });
+// } else {
+// 	request.state = 'executed';
+// 	await request.save();
+// }
 
-
-	// if (request.state !== 'inprogress') {
-	// 	throw new Error({ error: 'Can\'t execute this request' });
-	// } else {
-	// 	request.state = 'executed';
-	// 	await request.save();
-	// }
-
-	next();
-});
+// next();
+// });
 
 const Lc = new mongoose.model('Lc', lcSchema);
 
