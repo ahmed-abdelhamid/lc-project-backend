@@ -10,7 +10,7 @@ const router = new express.Router();
 router.post('', auth({ canRegister: true }), async ({ body, user }, res) => {
 	const appendix = new Appendix({
 		...body,
-		createdBy: user._id
+		createdBy: user._id,
 	});
 	try {
 		await appendix.save();
@@ -42,10 +42,16 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await supplier
-			.populate('contracts')
-			.populate('appendixes')
+			.populate({
+				path: 'contracts',
+				populate: { path: 'appendixes' },
+			})
 			.execPopulate();
-		res.send(supplier.contracts.appendixes);
+		const appendixes = [];
+		for (let doc of supplier.contracts) {
+			appendixes.push(...doc.appendixes);
+		}
+		res.send(appendixes);
 	} catch (e) {
 		res.status(404).send();
 	}
@@ -99,13 +105,13 @@ router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
 		'notes',
 		'contractId',
 		'date',
-		'state'
+		'state',
 	];
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
 		const appendix = await Appendix.findByIdAndUpdate(body._id, updates, {
 			new: true,
-			runValidators: true
+			runValidators: true,
 		});
 		if (!appendix) {
 			throw new Error();

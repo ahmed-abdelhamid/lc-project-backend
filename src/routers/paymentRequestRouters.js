@@ -27,17 +27,29 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await supplier
-			.populate('contracts')
-			.populate('paymentRequests')
+			.populate({ path: 'contracts', populate: { path: 'paymentRequests' } })
 			.execPopulate();
+		const cash = [];
+		for (let doc of supplier.contracts) {
+			cash.push(...doc.paymentRequests);
+		}
 		await supplier
-			.populate('contracts')
-			.populate('lcs')
-			.populate('paymentRequests')
+			.populate({
+				path: 'contracts',
+				populate: { path: 'lcs', populate: { path: 'paymentRequests' } },
+			})
 			.execPopulate();
+		const lcs = [];
+		for (let doc of supplier.contracts) {
+			lcs.push(...doc.lcs);
+		}
+		const lc = [];
+		for (let doc of lcs) {
+			lc.push(...doc.paymentRequests);
+		}
 		res.send({
-			cash: supplier.contratcs.paymentRequests,
-			lc: supplier.contracts.lcs.paymentRequests,
+			cash: cash,
+			lc: lc,
 		});
 	} catch (e) {
 		res.status(404).send();

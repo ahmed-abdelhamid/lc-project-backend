@@ -36,11 +36,20 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			throw new Error('Supplier not found!');
 		}
 		await supplier
-			.populate('contracts')
-			.populate('lcs')
-			.populate('requests')
+			.populate({
+				path: 'contracts',
+				populate: { path: 'lcs', populate: { path: 'requests' } },
+			})
 			.execPopulate();
-		res.send(supplier.contracts.lcs.requests);
+		const lcs = [];
+		for (let doc of supplier.contracts) {
+			lcs.push(...doc.lcs);
+		}
+		const requests = [];
+		for (let doc of lcs) {
+			requests.push(...doc.requests);
+		}
+		res.send(requests);
 	} catch (e) {
 		res.status(404).send(e);
 	}
