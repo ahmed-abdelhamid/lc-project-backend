@@ -76,10 +76,13 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 			throw new Error('Contract not found!');
 		}
 		await contract
-			.populate('lcs')
-			.populate('requests')
+			.populate({ path: 'lcs', populate: { path: 'requests' } })
 			.execPopulate();
-		res.send(lc.requests);
+		const requests = [];
+		for (let doc of contract.lcs) {
+			requests.push(...doc.requests);
+		}
+		res.send(requests);
 	} catch (e) {
 		res.status(404).send();
 	}
@@ -201,7 +204,7 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 				throw new Error();
 			}
 			// if request is new or approved check if the requester is the deleter
-		} else if (user._id !== request.requestedBy) {
+		} else if (user._id !== request.createdBy) {
 			throw new Error();
 		}
 

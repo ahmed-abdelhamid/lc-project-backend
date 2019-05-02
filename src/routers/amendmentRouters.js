@@ -42,24 +42,6 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	}
 });
 
-// Get amendments for specific supplier
-router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
-	try {
-		const supplier = await Supplier.findById(params.supplierId);
-		if (!supplier) {
-			throw new Error();
-		}
-		await supplier
-			.populate('contracts')
-			.populate('lcs')
-			.populate('amendments')
-			.execPopulate();
-		res.send(supplier.contracts.lcs.amendments);
-	} catch (e) {
-		res.status(404).send();
-	}
-});
-
 // Get amendments for specific contract
 router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 	try {
@@ -68,10 +50,40 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await contract
-			.populate('lcs')
-			.populate('amendments')
+			.populate({ path: 'lcs', populate: { path: 'amendments' } })
 			.execPopulate();
-		res.send(contract.lcs.amendments);
+		const amendments = [];
+		for (let doc of contract.lcs) {
+			amendments.push(...doc.amendments);
+		}
+		res.send(amendments);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+
+// Get amendments for specific supplier
+router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.supplierId);
+		if (!supplier) {
+			throw new Error();
+		}
+		await supplier
+			.populate({
+				path: 'contracts',
+				populate: { path: 'lcs', populate: { path: 'amendments' } },
+			})
+			.execPopulate();
+		const lcs = [];
+		for (let doc of supplier.contracts) {
+			lcs.push(...doc.lcs);
+		}
+		const amendments = [];
+		for (let doc of lcs) {
+			amendments.push(...doc.amendments);
+		}
+		res.send(amendments);
 	} catch (e) {
 		res.status(404).send();
 	}

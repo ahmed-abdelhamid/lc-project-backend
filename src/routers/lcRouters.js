@@ -96,10 +96,14 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await supplier
-			.populate('contracts')
-			.populate('lcs')
+			.populate({ path: 'contracts', populate: { path: 'lcs' } })
 			.execPopulate();
-		res.send(supplier.contracts.lcs);
+		const lcs = [];
+		for (let doc of supplier.contracts) {
+			lcs.push(...doc.lcs);
+		}
+
+		res.send(lcs);
 	} catch (e) {
 		res.status(404).send();
 	}

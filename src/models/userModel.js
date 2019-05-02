@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
 				if (!validator.isEmail(value)) {
 					throw new Error('Invalid Email');
 				}
-			}
+			},
 		},
 		password: {
 			type: String,
@@ -25,10 +25,10 @@ const userSchema = new mongoose.Schema(
 			validate(value) {
 				if (!value.match(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}$/)) {
 					throw new Error(
-						'Password must be at least 6 characters, and must include at least one upper case letter, one lower case letter, and one numeric digit.'
+						'Password must be at least 6 characters, and must include at least one upper case letter, one lower case letter, and one numeric digit.',
 					);
 				}
-			}
+			},
 		},
 		phone: {
 			type: String,
@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema(
 				if (!validator.isMobilePhone(value, 'ar-SA')) {
 					throw new Error('Invalid Phone Number');
 				}
-			}
+			},
 		},
 		notes: { type: String, trim: true },
 		canRequest: { type: Boolean, default: false },
@@ -47,66 +47,66 @@ const userSchema = new mongoose.Schema(
 		state: {
 			type: String,
 			enum: ['new', 'blocked', 'active', 'archived'],
-			default: 'new'
+			default: 'new',
 		},
 		auth: { type: String, enum: ['admin', 'user'], default: 'user' },
-		tokens: [{ token: { type: String, required: true } }]
+		tokens: [{ token: { type: String, required: true } }],
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 userSchema.virtual('suppliers', {
 	ref: 'Supplier',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('contracts', {
 	ref: 'Contract',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('appendixes', {
 	ref: 'Appendix',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('requests', {
 	ref: 'Request',
 	localField: '_id',
-	foreignField: 'requestedBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('lcs', {
 	ref: 'Lc',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('extensions', {
 	ref: 'Extension',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('amendments', {
 	ref: 'Amendment',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('paymentRequests', {
 	ref: 'PaymentRequest',
 	localField: '_id',
-	foreignField: 'requestedBy'
+	foreignField: 'createdBy',
 });
 
 userSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'createdBy'
+	foreignField: 'createdBy',
 });
 
 // Hide Sensitive Data

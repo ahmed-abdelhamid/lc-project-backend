@@ -57,7 +57,7 @@ paymentRequestSchema.pre('save', async function(next) {
 
 paymentRequestSchema.post('find', async function(docs) {
 	for (let doc of docs) {
-		await doc.populate('requestedBy', 'name').execPopulate();
+		await doc.populate('createdBy', 'name').execPopulate();
 	}
 });
 

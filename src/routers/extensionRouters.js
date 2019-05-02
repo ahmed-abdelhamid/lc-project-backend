@@ -49,11 +49,20 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 			throw new Error('supplier not found for extesnion');
 		}
 		await supplier
-			.populate('contracts')
-			.populate('lcs')
-			.populate('extensions')
+			.populate({
+				path: 'contracts',
+				populate: { path: 'lcs', populate: { path: 'extensions' } },
+			})
 			.execPopulate();
-		res.send(supplier.contracts.lcs.extensions);
+		const lcs = [];
+		for (let doc of supplier.contracts) {
+			lcs.push(...doc.lcs);
+		}
+		const extensions = [];
+		for (let doc of lcs) {
+			amendments.push(...doc.extensions);
+		}
+		res.send(extensions);
 	} catch (e) {
 		res.status(404).send(e);
 	}
@@ -67,10 +76,13 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await contract
-			.populate('lcs')
-			.populate('extensions')
+			.populate({ path: 'lcs', populate: { path: 'extensions' } })
 			.execPopulate();
-		res.send(contract.lcs.extensions);
+		const extensions = [];
+		for (let doc of contract.lcs) {
+			extensions.push(...doc.extensions);
+		}
+		res.send(extensions);
 	} catch (e) {
 		res.status(404).send();
 	}

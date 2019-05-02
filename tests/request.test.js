@@ -17,7 +17,7 @@ const {
 	requestForBothId,
 	lcOneId,
 	inprogressRequestId,
-	setupDatabase
+	setupDatabase,
 } = require('./fixtures/db');
 
 beforeEach(setupDatabase);
@@ -32,9 +32,9 @@ test('Should create new request', async () => {
 		.send({ upTo: new Date() })
 		.expect(201);
 	expect(body).toMatchObject({
-		requestedBy: adminId.toString(),
+		createdBy: adminId.toString(),
 		supplierId: supplierOneId.toString(),
-		state: 'new'
+		state: 'new',
 	});
 });
 
@@ -238,7 +238,7 @@ test('Should not execute request if wrong lc id', async () => {
 		.send({
 			lcId: new mongoose.Types.ObjectId(),
 			upTo: new Date(),
-			amount: 10000
+			amount: 10000,
 		})
 		.expect(400);
 	const amendments = await Amendment.find();

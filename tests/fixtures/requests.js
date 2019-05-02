@@ -4,7 +4,7 @@ const {
 	supplierThreeId,
 	supplierOneId,
 	supplierTwoId,
-	supplierFourId
+	supplierFourId,
 } = require('./suppliers');
 
 const newRequestId = new mongoose.Types.ObjectId();
@@ -12,7 +12,7 @@ const newRequest = {
 	_id: newRequestId,
 	amount: 1000,
 	supplierId: supplierThreeId,
-	requestedBy: activeUserOneId
+	createdBy: activeUserOneId,
 };
 
 const approvedRequestId = new mongoose.Types.ObjectId();
@@ -21,7 +21,7 @@ const approvedRequest = {
 	amount: 1000,
 	state: 'approved',
 	supplierId: supplierThreeId,
-	requestedBy: activeUserOneId
+	createdBy: activeUserOneId,
 };
 
 const inprogressRequestId = new mongoose.Types.ObjectId();
@@ -30,7 +30,7 @@ const inprogressRequest = {
 	amount: 1000,
 	state: 'inprogress',
 	supplierId: supplierOneId,
-	requestedBy: activeUserTwoId
+	createdBy: activeUserTwoId,
 };
 
 const inprogressRequestOneId = new mongoose.Types.ObjectId();
@@ -39,7 +39,7 @@ const inprogressRequestOne = {
 	amount: 3000,
 	state: 'inprogress',
 	supplierId: supplierTwoId,
-	requestedBy: activeUserTwoId
+	createdBy: activeUserTwoId,
 };
 
 const requestForAmendmentId = new mongoose.Types.ObjectId();
@@ -48,7 +48,7 @@ const requestForAmendment = {
 	amount: 3000,
 	state: 'inprogress',
 	supplierId: supplierTwoId,
-	requestedBy: activeUserTwoId
+	createdBy: activeUserTwoId,
 };
 
 const requestForExtensionId = new mongoose.Types.ObjectId();
@@ -57,7 +57,7 @@ const requestForExtension = {
 	upTo: new Date(),
 	state: 'inprogress',
 	supplierId: supplierTwoId,
-	requestedBy: activeUserTwoId
+	createdBy: activeUserTwoId,
 };
 
 const requestForBothId = new mongoose.Types.ObjectId();
@@ -67,7 +67,7 @@ const requestForBoth = {
 	upTo: new Date(),
 	state: 'inprogress',
 	supplierId: supplierTwoId,
-	requestedBy: activeUserTwoId
+	createdBy: activeUserTwoId,
 };
 
 const executedRequestId = new mongoose.Types.ObjectId();
@@ -76,7 +76,7 @@ const executedRequest = {
 	amount: 1000,
 	state: 'executed',
 	supplierId: supplierFourId,
-	requestedBy: adminId
+	createdBy: adminId,
 };
 
 module.exports = {
@@ -95,5 +95,5 @@ module.exports = {
 	requestForBothId,
 	requestForBoth,
 	executedRequestId,
-	executedRequest
+	executedRequest,
 };

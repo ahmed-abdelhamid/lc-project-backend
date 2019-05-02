@@ -1,7 +1,9 @@
 const express = require('express');
 const PaymentRequest = require('../models/paymentRequestModel');
 const Payment = require('../models/paymentModel');
+const Contract = require('../models/contractModel');
 const Supplier = require('../models/supplierModel');
+const Lc = require('../models/lcModel');
 const auth = require('../middleware/auth');
 const router = new express.Router();
 
@@ -55,6 +57,44 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		res.status(404).send();
 	}
 });
+// Get payment requests for specific contract
+router.get('/contract/:contractId', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.contractId);
+		if (!contract) {
+			throw new Error();
+		}
+		await contract.populate({ path: 'paymentRequests' }).execPopulate();
+		const cash = contract.paymentRequests;
+
+		await contract
+			.populate({ path: 'lcs', populate: { path: 'paymentRequests' } })
+			.execPopulate();
+		const lc = [];
+		for (let doc of contract.lcs) {
+			lc.push(...doc.paymentRequests);
+		}
+		res.send({
+			cash: cash,
+			lc: lc,
+		});
+	} catch (e) {
+		res.status(404).send();
+	}
+});
+// Get payment requests for specific lc
+router.get('/lc/:lcId', auth(), async ({ params }, res) => {
+	try {
+		const lc = await Lc.findById(params.lcId);
+		if (!lc) {
+			throw new Error();
+		}
+		await lc.populate({ path: 'paymentRequests' }).execPopulate();
+		res.send(lc.paymentRequests);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 // Get all payment requests
 router.get('', auth(), async (req, res) => {
@@ -97,7 +137,7 @@ router.patch('', auth({ canRequest: true }), async ({ body }, res) => {
 			!paymentRequest ||
 			paymentRequest.state === 'approved' ||
 			paymentRequest.state === 'inprogress' ||
-			user._id !== paymentRequest.requestedBy
+			user._id !== paymentRequest.createdBy
 		) {
 			throw new Error();
 		}
@@ -169,7 +209,7 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 				throw new Error();
 			}
 			// if request is new or approved check if the requester is the deleter
-		} else if (user._id !== paymentRequest.requestedBy) {
+		} else if (user._id !== paymentRequest.createdBy) {
 			throw new Error();
 		}
 		paymentRequest.state = 'deleted';
