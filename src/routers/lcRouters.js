@@ -6,31 +6,27 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new lc
-router.post(
-	'/:id',
-	auth({ canAdd: true }),
-	async ({ params, body, user }, res) => {
-		const requestId = params.id;
-		const lc = new Lc({
-			...body,
-			lcRequestId: requestId,
-			createdBy: user._id,
-		});
+router.post('/:id', auth({ canAdd: true }), async ({ params, body, user }, res) => {
+	const requestId = params.id;
+	const lc = new Lc({
+		...body,
+		requestId: requestId,
+		createdBy: user._id,
+	});
 
-		try {
-			const request = await LcRequest.findById(requestId);
-			if (!request || request.state !== 'inprogress') {
-				throw new Error('request not found');
-			}
-			request.state = 'executed';
-			await lc.save();
-			await request.save();
-			res.status(201).send(lc);
-		} catch (e) {
-			res.status(400).send(e);
+	try {
+		const request = await Request.findById(requestId);
+		if (!request || request.state !== 'inprogress') {
+			throw new Error('request not found');
 		}
-	},
-);
+		request.state = 'executed';
+		await lc.save();
+		await request.save();
+		res.status(201).send(lc);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // Get all lcs
 router.get('', auth(), async (req, res) => {
@@ -72,6 +68,7 @@ router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
 		'previouslyPaidWithInvoice',
 		'advancedPaymentCondition',
 		'otherPaymentsCondition',
+		'advancedPayment',
 	];
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
@@ -95,9 +92,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		if (!supplier) {
 			throw new Error();
 		}
-		await supplier
-			.populate({ path: 'contracts', populate: { path: 'lcs' } })
-			.execPopulate();
+		await supplier.populate({ path: 'contracts', populate: { path: 'lcs' } }).execPopulate();
 		const lcs = [];
 		for (let doc of supplier.contracts) {
 			lcs.push(...doc.lcs);

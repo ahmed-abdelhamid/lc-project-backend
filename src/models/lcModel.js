@@ -1,48 +1,56 @@
 const mongoose = require('mongoose');
 
-const lcSchema = new mongoose.Schema({
-	requestId: {
-		type: mongoose.Schema.Types.ObjectId,
-		required: true,
-		ref: 'LcRequest',
+const lcSchema = new mongoose.Schema(
+	{
+		requestId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'Request',
+		},
+		contractId: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'Contract',
+		},
+		createdBy: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+			ref: 'User',
+		},
+		issuer: { type: String, required: true, trim: true },
+		bankName: { type: String, required: true, trim: true },
+		number: { type: String, required: true, unique: true, trim: true },
+		openingCommission: { type: Number },
+		serviceCharge: { type: Number },
+		editCommission: { type: Number },
+		issueDate: { type: Date, required: true },
+		expiryDate: { type: Date, required: true },
+		amount: { type: Number, required: true },
+		notes: { type: String, trim: true },
+		previouslyPaidWithInvoice: { type: Number },
+		active: {
+			type: Boolean,
+			default: true,
+			required: true,
+		},
+		advancedPaymentCondition: {
+			type: String,
+			enum: ['at sight', '30 days', '60 days'],
+			required: true,
+		},
+		otherPaymentsCondition: {
+			type: String,
+			enum: ['at sight', '30 days', '60 days'],
+			required: true,
+		},
+		advancedPayment: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 	},
-	contractId: {
-		type: mongoose.Schema.Types.ObjectId,
-		required: true,
-		ref: 'Contract',
-	},
-	createdBy: {
-		type: mongoose.Schema.Types.ObjectId,
-		required: true,
-		ref: 'User',
-	},
-	issuer: { type: String, required: true, trim: true },
-	bankName: { type: String, required: true, trim: true },
-	number: { type: String, required: true, unique: true, trim: true },
-	openingCommission: { type: Number },
-	serviceCharge: { type: Number },
-	editCommission: { type: Number },
-	issueDate: { type: Date, required: true },
-	expiryDate: { type: Date, required: true },
-	amount: { type: Number, required: true },
-	notes: { type: String, trim: true },
-	previouslyPaidWithInvoice: { type: Number },
-	active: {
-		type: Boolean,
-		default: true,
-		required: true,
-	},
-	advancedPaymentCondition: {
-		type: String,
-		enum: ['at sight', '30 days', '60 days'],
-		required: true,
-	},
-	otherPaymentsCondition: {
-		type: String,
-		enum: ['at sight', '30 days', '60 days'],
-		required: true,
-	},
-});
+	{ timestamps: true },
+);
 
 lcSchema.virtual('extensions', {
 	ref: 'Extension',

@@ -47,7 +47,6 @@ router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.supplierId);
-		console.log('supplier', supplier);
 
 		if (!supplier) {
 			throw new Error('there is no such supplier for this payment!');
@@ -66,9 +65,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		for (let doc of lcs) {
 			lc.push(...doc.payments);
 		}
-		await supplier
-			.populate({ path: 'contracts', populate: { path: 'payments' } })
-			.execPopulate();
+		await supplier.populate({ path: 'contracts', populate: { path: 'payments' } }).execPopulate();
 		const cash = [];
 		for (let doc of supplier.contracts) {
 			cash.push(...doc.payments);
@@ -87,9 +84,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 			throw new Error();
 		}
 		await contract.populate('payments').execPopulate();
-		await contract
-			.populate({ path: 'lcs', populate: { path: 'payments' } })
-			.execPopulate();
+		await contract.populate({ path: 'lcs', populate: { path: 'payments' } }).execPopulate();
 		const lc = [];
 		for (let doc of supplier.contracts) {
 			lc.push(...doc.payments);

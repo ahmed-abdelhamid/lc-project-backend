@@ -16,11 +16,6 @@ router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
 	});
 
 	try {
-		const lc = await Lc.findById(request.lcId);
-		if (!lc) {
-			throw new Error('Lc not found!');
-		}
-
 		await request.save();
 		res.status(201).send(request);
 	} catch (e) {
@@ -49,7 +44,12 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		for (let doc of lcs) {
 			requests.push(...doc.requests);
 		}
-		res.send(requests);
+		await supplier.populate({ path: 'contracts', populate: { path: 'requests' } }).execPopulate();
+		const lcRequests = [];
+		for (let doc of supplier.contracts) {
+			lcRequests.push(...doc.requests);
+		}
+		res.send([...requests, ...lcRequests]);
 	} catch (e) {
 		res.status(404).send(e);
 	}
@@ -75,9 +75,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 		if (!contract) {
 			throw new Error('Contract not found!');
 		}
-		await contract
-			.populate({ path: 'lcs', populate: { path: 'requests' } })
-			.execPopulate();
+		await contract.populate({ path: 'lcs', populate: { path: 'requests' } }).execPopulate();
 		const requests = [];
 		for (let doc of contract.lcs) {
 			requests.push(...doc.requests);
@@ -123,9 +121,7 @@ router.get('/:id', auth(), async ({ params }, res) => {
 
 // Modify request only if still new or approved
 router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
-	const updates = {};
-	const allowedUpdates = ['upTo', 'amount', 'notes'];
-	allowedUpdates.map(update => (updates[update] = body[update]));
+	const allowedUpdates = ['upTo', 'amount', 'notes', 'advancedPaymentCondition', 'otherPaymentsCondition', 'advancedPayment'];
 	try {
 		const request = await Request.findById(body._id);
 		// note that the createdBy field now = {_id, name}
@@ -135,11 +131,11 @@ router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
 			request.state === 'executed' ||
 			request.state === 'inprogress' ||
 			request.state === 'deleted' ||
-			user._id !== request.createdBy._id
+			user._id.toString() !== request.createdBy.toString()
 		) {
 			throw new Error();
 		}
-		allowedUpdates.map(update => (request[update] = updates[update]));
+		allowedUpdates.map(update => (request[update] = body[update]));
 		// after modify the state will return new
 		request.state = 'new';
 		await request.save();
@@ -150,42 +146,34 @@ router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
 });
 
 // Approve request
-router.patch(
-	'/:id/approve',
-	auth({ canApprove: true }),
-	async ({ params }, res) => {
-		try {
-			const request = await Request.findById(params.id);
-			if (!request || request.state !== 'new') {
-				throw new Error();
-			}
-			request.state = 'approved';
-			await request.save();
-			res.send(request);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res) => {
+	try {
+		const request = await Request.findById(params.id);
+		if (!request || request.state !== 'new') {
+			throw new Error();
 		}
-	},
-);
+		request.state = 'approved';
+		await request.save();
+		res.send(request);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // Inprogressing request
-router.patch(
-	'/:id/inprogress',
-	auth({ canAdd: true }),
-	async ({ params }, res) => {
-		try {
-			const request = await Request.findById(params.id);
-			if (!request || request.state !== 'approved') {
-				throw new Error();
-			}
-			request.state = 'inprogress';
-			await request.save();
-			res.send(request);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('/:id/inprogress', auth({ canAdd: true }), async ({ params }, res) => {
+	try {
+		const request = await Request.findById(params.id);
+		if (!request || request.state !== 'approved') {
+			throw new Error();
 		}
-	},
-);
+		request.state = 'inprogress';
+		await request.save();
+		res.send(request);
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 // delete Request
 router.patch('/:id/delete', auth(), async ({ params }, res) => {
@@ -204,7 +192,7 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 				throw new Error();
 			}
 			// if request is new or approved check if the requester is the deleter
-		} else if (user._id !== request.createdBy) {
+		} else if (user._id.toString() !== request.createdBy._id.toString()) {
 			throw new Error();
 		}
 
@@ -217,19 +205,17 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 });
 
 // Executing request
-router.patch(
-	'/execute',
-	auth({ canAdd: true }),
-	async ({ body, user }, res) => {
-		let extension;
-		let amendment;
-		const { lcId, notes, upTo, amount } = body;
-		try {
-			const request = await Request.findById(body._id);
-			if (!request || request.state !== 'inprogress') {
-				throw new Error();
-			}
-
+router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => {
+	let extension;
+	let amendment;
+	let lc;
+	const { lcId, notes, upTo, amount } = body;
+	try {
+		const request = await Request.findById(body._id);
+		if (!request || request.state !== 'inprogress') {
+			throw new Error();
+		}
+		if (lcId) {
 			if (upTo) {
 				// New Extension
 				extension = new Extension({
@@ -253,13 +239,33 @@ router.patch(
 				});
 				await amendment.save();
 			}
-			request.state = 'executed';
-			await request.save();
-			res.status(201).send({ extension, amendment });
-		} catch (e) {
-			res.status(400).send(e);
+		} else {
+			lc = new Lc({
+				requestId: request._id,
+				contractId: request.contractId,
+				issuer: body.issuer,
+				bankName: body.bankName,
+				number: body.number,
+				openingCommission: body.openingCommission,
+				serviceCharge: body.serviceCharge,
+				editCommission: body.editCommission,
+				issueDate: body.issueDate,
+				expiryDate: body.expiryDate,
+				amount: body.amount,
+				notes: body.notes,
+				advancedPaymentCondition: body.advancedPaymentCondition,
+				otherPaymentsCondition: body.otherPaymentsCondition,
+				previouslyPaidWithInvoice: body.previouslyPaidWithInvoice,
+				advancedPayment: body.advancedPayment,
+			});
+			await lc.save();
 		}
-	},
-);
+		request.state = 'executed';
+		await request.save();
+		res.status(201).send({ extension, amendment });
+	} catch (e) {
+		res.status(400).send(e);
+	}
+});
 
 module.exports = router;

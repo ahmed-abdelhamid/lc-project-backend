@@ -93,10 +93,7 @@ router.get('appendix/:id', auth(), async ({ params }, res) => {
 		if (!appendix) {
 			return res.status(404).send();
 		}
-		await appendix
-			.populate('contractId')
-			.populate('supplierId')
-			.execPopulate();
+		await appendix.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 		res.send(appendix.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -110,10 +107,7 @@ router.get('lc/:id', auth(), async ({ params }, res) => {
 		if (!lc) {
 			return res.status(404).send();
 		}
-		await lc
-			.populate('contractId')
-			.populate('supplierId')
-			.execPopulate();
+		await lc.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 		res.send(lc.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -126,12 +120,8 @@ router.get('request/:id', auth(), async ({ params }, res) => {
 		if (!request) {
 			return res.status(404).send();
 		}
-		await request
-			.populate('lcId')
-			.populate('contractId')
-			.populate('supplierId')
-			.execPopulate();
-		res.send(supplier);
+		await request.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
+		res.send(request.lcId.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
@@ -144,17 +134,10 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 			return res.status(404).send();
 		}
 		if (paymentRequest.lcId) {
-			await request
-				.populate('lcId')
-				.populate('contractId')
-				.populate('supplierId')
-				.execPopulate();
+			await request.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
 			res.send(paymentRequest.lcId.contarctId.supplierId);
 		} else {
-			await request
-				.populate('contractId')
-				.populate('supplierId')
-				.execPopulate();
+			await request.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(paymentRequest.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -170,17 +153,10 @@ router.get('payment/:id', auth(), async ({ params }, res) => {
 			return res.status(404).send();
 		}
 		if (payment.lcId) {
-			await request
-				.populate('lcId')
-				.populate('contractId')
-				.populate('supplierId')
-				.execPopulate();
+			await payment.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
 			res.send(payment.lcId.contarctId.supplierId);
 		} else {
-			await request
-				.populate('contractId')
-				.populate('supplierId')
-				.execPopulate();
+			await payment.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(payment.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -195,11 +171,7 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 		if (!extension) {
 			return res.status(404).send();
 		}
-		await extension
-			.populate('lcId')
-			.populate('contractId')
-			.populate('supplierId')
-			.execPopulate();
+		await extension.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
 		res.send(supplier);
 	} catch (e) {
 		res.status(500).send();
@@ -212,11 +184,7 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 		if (!amendment) {
 			return res.status(404).send();
 		}
-		await amendment
-			.populate('lcId')
-			.populate('contractId')
-			.populate('supplierId')
-			.execPopulate();
+		await amendment.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
 		res.send(supplier);
 	} catch (e) {
 		res.status(500).send();
@@ -226,14 +194,7 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 // Update supplier data
 router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
 	const updates = {};
-	const allowedUpdates = [
-		'name',
-		'specialization',
-		'notes',
-		'vatRegisteration',
-		'crRegisteration',
-		'state',
-	];
+	const allowedUpdates = ['name', 'specialization', 'notes', 'vatRegisteration', 'crRegisteration', 'state'];
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
 		const supplier = await Supplier.findByIdAndUpdate(body._id, updates, {

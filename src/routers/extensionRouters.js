@@ -60,7 +60,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		}
 		const extensions = [];
 		for (let doc of lcs) {
-			amendments.push(...doc.extensions);
+			extensions.push(...doc.extensions);
 		}
 		res.send(extensions);
 	} catch (e) {
@@ -75,9 +75,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 		if (!contract) {
 			throw new Error();
 		}
-		await contract
-			.populate({ path: 'lcs', populate: { path: 'extensions' } })
-			.execPopulate();
+		await contract.populate({ path: 'lcs', populate: { path: 'extensions' } }).execPopulate();
 		const extensions = [];
 		for (let doc of contract.lcs) {
 			extensions.push(...doc.extensions);
