@@ -148,6 +148,7 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 		}
 		paymentRequest.state = 'approved';
 		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
 		res.send(paymentRequest);
 	} catch (e) {
 		res.status(400).send(e);
@@ -163,6 +164,7 @@ router.patch('/:id/inprogress', auth({ canAdd: true }), async ({ params }, res) 
 		}
 		paymentRequest.state = 'inprogress';
 		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
 		res.send(paymentRequest);
 	} catch (e) {
 		res.status(400).send(e);
@@ -198,16 +200,14 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 	let payment;
 	const { notes, amount } = body;
 	try {
-		const paymentRequest = await PaymentRequ.est.findById(body._id);
+		const paymentRequest = await PaymentRequest.findById(body._id);
 		if (!paymentRequest || paymentRequest.state !== 'inprogress') {
-			throw new Error();
+			throw new Error('here');
 		}
 
 		payment = new Payment({
 			paymentRequestId: paymentRequest._id,
-			// contractId: paymentRequest.contractId,
 			createdBy: user._id,
-			createdAt: paymentRequest.createdAt,
 			// dateOfRequest: paymentRequest.createdAt, ==> no need , we can get the request of payment date
 		});
 
@@ -216,14 +216,17 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 			payment.amount = paymentRequest.amount;
 			payment.notes = paymentRequest.notes;
 		} else {
+			payment.contractId = paymentRequest.contractId;
 			payment.amount = amount;
 			payment.notes = notes;
 		}
 
 		await payment.save();
+		await payment.populate('createdBy', 'name').execPopulate();
 		paymentRequest.state = 'executed';
 		await paymentRequest.save();
-		res.status(201).send(paymentRequest);
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
+		res.status(201).send(paymentRequest, payment);
 	} catch (e) {
 		res.status(400).send(e);
 	}

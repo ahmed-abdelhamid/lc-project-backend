@@ -30,16 +30,10 @@ const paymentSchema = new mongoose.Schema(
 paymentSchema.pre('save', async function(next) {
 	const payment = this;
 
-	const paymentRequest = await PaymentRequest.findById(
-		payment.paymentRequestId,
-	);
+	const paymentRequest = await PaymentRequest.findById(payment.paymentRequestId);
 	if (paymentRequest.lcId && paymentRequest.amount !== payment.amount) {
 		throw new Error('Amount is different than in the request');
 	}
-
-	// if (paymentRequest.lcId) {
-	// 	payment.lcId = paymentRequest.lcId;
-	// }
 
 	next();
 });

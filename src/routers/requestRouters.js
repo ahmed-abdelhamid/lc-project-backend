@@ -154,6 +154,7 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 		}
 		request.state = 'approved';
 		await request.save();
+		await request.populate('createdBy', 'name').execPopulate();
 		res.send(request);
 	} catch (e) {
 		res.status(400).send(e);
@@ -169,6 +170,7 @@ router.patch('/:id/inprogress', auth({ canAdd: true }), async ({ params }, res) 
 		}
 		request.state = 'inprogress';
 		await request.save();
+		await request.populate('createdBy', 'name').execPopulate();
 		res.send(request);
 	} catch (e) {
 		res.status(400).send(e);
@@ -262,7 +264,8 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 		}
 		request.state = 'executed';
 		await request.save();
-		res.status(201).send({ extension, amendment });
+		await request.populate('createdBy', 'name').execPopulate();
+		res.status(201).send({ request, extension, amendment, lc });
 	} catch (e) {
 		res.status(400).send(e);
 	}

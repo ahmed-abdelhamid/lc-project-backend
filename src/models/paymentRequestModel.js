@@ -44,14 +44,13 @@ paymentRequestSchema.pre('save', async function(next) {
 		if (!lc) {
 			throw new Error('Lc not found');
 		}
-	}
-
-	if (paymentRequest.contractId) {
+	} else {
 		const contract = await Contract.findById(paymentRequest.contractId);
 		if (!contract) {
 			throw new Error('Contract not found');
 		}
 	}
+
 	next();
 });
 
@@ -61,9 +60,6 @@ paymentRequestSchema.post('find', async function(docs) {
 	}
 });
 
-const PaymentRequest = new mongoose.model(
-	'PaymentRequest',
-	paymentRequestSchema,
-);
+const PaymentRequest = new mongoose.model('PaymentRequest', paymentRequestSchema);
 
 module.exports = PaymentRequest;

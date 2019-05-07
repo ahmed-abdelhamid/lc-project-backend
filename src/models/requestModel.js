@@ -28,7 +28,7 @@ const requestSchema = new mongoose.Schema(
 		notes: { type: String, trim: true },
 		advancedPaymentCondition: { type: String, enum: ['at sight', '30 days', '60 days'] },
 		otherPaymentsCondition: { type: String, enum: ['at sight', '30 days', '60 days'] },
-		advancedPayment: { type: Number, required: true, default: 0 },
+		advancedPayment: { type: Number },
 	},
 	{ timestamps: true },
 );
