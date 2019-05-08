@@ -3,7 +3,7 @@ const PaymentRequest = require('./paymentRequestModel');
 
 const paymentSchema = new mongoose.Schema(
 	{
-		paymentRequestId: {
+		requestId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
 			ref: 'PaymentRequest',
@@ -30,7 +30,7 @@ const paymentSchema = new mongoose.Schema(
 paymentSchema.pre('save', async function(next) {
 	const payment = this;
 
-	const paymentRequest = await PaymentRequest.findById(payment.paymentRequestId);
+	const paymentRequest = await PaymentRequest.findById(payment.requestId);
 	if (paymentRequest.lcId && paymentRequest.amount !== payment.amount) {
 		throw new Error('Amount is different than in the request');
 	}

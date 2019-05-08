@@ -206,7 +206,7 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 		}
 
 		payment = new Payment({
-			paymentRequestId: paymentRequest._id,
+			requestId: paymentRequest._id,
 			createdBy: user._id,
 			// dateOfRequest: paymentRequest.createdAt, ==> no need , we can get the request of payment date
 		});

@@ -33,7 +33,7 @@ const paymentRequestSchema = new mongoose.Schema(
 paymentRequestSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'paymentRequestId',
+	foreignField: 'requestId',
 });
 
 paymentRequestSchema.pre('save', async function(next) {
