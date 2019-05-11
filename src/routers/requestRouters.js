@@ -17,6 +17,7 @@ router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
 
 	try {
 		await request.save();
+		await request.populate('createdBy', 'name').execPopulate();
 		res.status(201).send(request);
 	} catch (e) {
 		res.status(400).send(e);
@@ -139,6 +140,7 @@ router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
 		// after modify the state will return new
 		request.state = 'new';
 		await request.save();
+		await request.populate('createdBy', 'name').execPopulate();
 		res.send(request);
 	} catch (e) {
 		res.status(400).send(e);
@@ -243,6 +245,7 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 			}
 		} else {
 			lc = new Lc({
+				createdBy: user._id,
 				requestId: request._id,
 				contractId: request.contractId,
 				issuer: body.issuer,

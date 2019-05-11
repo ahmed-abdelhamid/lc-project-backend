@@ -15,6 +15,7 @@ router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
 	});
 	try {
 		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
 		res.status(201).send(paymentRequest);
 	} catch (e) {
 		res.status(400).send(e);
@@ -127,12 +128,8 @@ router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
 		}
 		allowedUpdates.forEach(update => (paymentRequest[update] = body[update]));
 		paymentRequest.state = 'new';
-		// paymentRequest.notes.concat(
-		// 	paymentRequest.notes,
-		// 	' ==> ',
-		// 	'updated and needs new approval',
-		// );
 		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
 		res.send(paymentRequest);
 	} catch (e) {
 		res.status(400).send(e);
@@ -226,7 +223,7 @@ router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => 
 		paymentRequest.state = 'executed';
 		await paymentRequest.save();
 		await paymentRequest.populate('createdBy', 'name').execPopulate();
-		res.status(201).send(paymentRequest, payment);
+		res.status(201).send({ paymentRequest, payment });
 	} catch (e) {
 		res.status(400).send(e);
 	}
