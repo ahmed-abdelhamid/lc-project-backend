@@ -40,9 +40,11 @@ const userSchema = new mongoose.Schema(
 			},
 		},
 		notes: { type: String, trim: true },
-		canRequest: { type: Boolean, default: false },
-		canAdd: { type: Boolean, default: false },
 		canRegister: { type: Boolean, default: false },
+		canRequest: { type: Boolean, default: false },
+		canAddLc: { type: Boolean, default: false },
+		canAddCashPayment: { type: Boolean, default: false },
+		canHandle: { type: Boolean, default: false },
 		canApprove: { type: Boolean, default: false },
 		state: {
 			type: String,

@@ -49,9 +49,7 @@ router.get('/:id', auth({ auth: 'admin' }), async (req, res) => {
 router.patch('/me', auth(), async ({ user, body }, res) => {
 	const updates = Object.keys(body);
 	const allowedUpdates = ['name', 'email', 'password', 'phone'];
-	const isValidOperation = updates.every(update =>
-		allowedUpdates.includes(update)
-	);
+	const isValidOperation = updates.every(update => allowedUpdates.includes(update));
 	if (!isValidOperation) {
 		return res.status(400).send({ error: 'Invalid Updates' });
 	}
@@ -65,49 +63,41 @@ router.patch('/me', auth(), async ({ user, body }, res) => {
 });
 
 // Update user by ID (ADMIN ONLY)
-router.patch(
-	'/:id',
-	auth({ auth: 'admin' }),
-	async ({ params, body }, res) => {
-		let user;
-		const _id = params.id;
-		const updates = Object.keys(body);
-		const allowedUpdates = [
-			'password',
-			'canAdd',
-			'canRequest',
-			'canApprove',
-			'canRegister',
-			'auth',
-			'state'
-		];
-		const isValidOperation = updates.every(update =>
-			allowedUpdates.includes(update)
-		);
-		if (!isValidOperation) {
-			return res.status(400).send({ error: 'Invalid Updates' });
+router.patch('', auth({ auth: 'admin' }), async ({ body }, res) => {
+	let user;
+	const updates = {};
+	const allowedUpdates = [
+		'canRegister',
+		'canRequest',
+		'canAddLc',
+		'canAddCashPayment',
+		'canHandle',
+		'canApprove',
+		'auth',
+		'state',
+		// 'password',
+	];
+	allowedUpdates.map(update => (updates[update] = body[update]));
+	// const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+	// if (!isValidOperation) {
+	// 	return res.status(400).send({ error: 'Invalid Updates' });
+	// }
+	try {
+		user = await User.findByIdAndUpdate(body._id, updates, {
+			new: true,
+			runValidators: true,
+		});
+		if (!user) {
+			return res.status(404).send();
 		}
-		try {
-			user = await User.findByIdAndUpdate(_id, body, {
-				new: true,
-				runValidators: true
-			});
-			if (!user) {
-				return res.status(404).send();
-			}
-			if (user.state === 'archived') {
-				user = await User.findByIdAndUpdate(
-					_id,
-					{ tokens: [] },
-					{ new: true, runValidators: true }
-				);
-			}
-			res.send(user);
-		} catch (e) {
-			res.status(400).send(e);
+		if (user.state === 'archived') {
+			user = await User.findByIdAndUpdate(body._id, { tokens: [] }, { new: true, runValidators: true });
 		}
+		res.send(user);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Archive user (Will be DELETED)
 // router.patch(
@@ -169,9 +159,7 @@ router.post('/login', async (req, res) => {
 // Logout user
 router.post('/logout', auth(), async (req, res) => {
 	try {
-		req.user.tokens = req.user.tokens.filter(
-			({ token }) => token !== req.token
-		);
+		req.user.tokens = req.user.tokens.filter(({ token }) => token !== req.token);
 		await req.user.save();
 		res.send();
 	} catch (e) {
