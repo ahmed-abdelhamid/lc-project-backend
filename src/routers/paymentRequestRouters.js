@@ -153,7 +153,7 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 });
 
 // Inprogressing request
-router.patch('/:id/inprogress', auth({ canAdd: true }), async ({ params }, res) => {
+router.patch('/:id/inprogress', auth({ canAddLc: true, canAddCashPayment: true }), async ({ params }, res) => {
 	try {
 		const paymentRequest = await PaymentRequest.findById(params.id);
 		if (!paymentRequest || paymentRequest.state !== 'approved') {
@@ -177,7 +177,7 @@ router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 			throw new Error();
 			// check if executed or inprogress and the deleter canAdd = true
 		} else if (paymentRequest.state === 'executed' || paymentRequest.state === 'inprogress') {
-			if (user.canAdd !== true) {
+			if (user.canAddLc !== true) {
 				throw new Error();
 			}
 			// if request is new or approved check if the requester is the deleter
@@ -193,7 +193,7 @@ router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 });
 
 // Executing request
-router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => {
+router.patch('/execute', auth({ canAddLc: true }), async ({ body, user }, res) => {
 	let payment;
 	const { notes, amount } = body;
 	try {

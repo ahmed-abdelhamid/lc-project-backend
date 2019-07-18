@@ -6,7 +6,7 @@ const auth = require('../middleware/auth');
 const router = new express.Router();
 
 // Create new lc
-router.post('/:id', auth({ canAdd: true }), async ({ params, body, user }, res) => {
+router.post('/:id', auth({ canAddLc: true }), async ({ params, body, user }, res) => {
 	const requestId = params.id;
 	const lc = new Lc({
 		...body,
@@ -52,7 +52,7 @@ router.get('/:id', auth(), async ({ params }, res) => {
 });
 
 // Update lc by id
-router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+router.patch('', auth({ canAddLc: true }), async ({ body }, res) => {
 	const updates = {};
 	const allowedUpdates = [
 		'issuer',

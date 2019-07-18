@@ -87,7 +87,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 });
 
 // Edit extension data
-router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+router.patch('', auth({ canAddLc: true }), async ({ body }, res) => {
 	const updates = {};
 	const allowedUpdates = ['upTo', 'notes'];
 	allowedUpdates.map(update => (updates[update] = body[update]));

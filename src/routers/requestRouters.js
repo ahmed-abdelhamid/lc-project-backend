@@ -164,7 +164,7 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 });
 
 // Inprogressing request
-router.patch('/:id/inprogress', auth({ canAdd: true }), async ({ params }, res) => {
+router.patch('/:id/inprogress', auth({ canHandle: true }), async ({ params }, res) => {
 	try {
 		const request = await Request.findById(params.id);
 		if (!request || request.state !== 'approved') {
@@ -187,12 +187,16 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 		if (!request) {
 			throw new Error();
 			// check if executed or inprogress that the delete canAdd = true
-		} else if (request.state === 'executed' || request.state === 'inprogress') {
-			if (user.canAdd !== true) {
+		} else if (request.state === 'executed') {
+			if (user.canAddLc !== true) {
+				throw new Error();
+			}
+		} else if (request.state === 'inprogress') {
+			if (user.canHandle !== true) {
 				throw new Error();
 			}
 		} else if (request.state === 'new' || request.state === 'approved') {
-			if (user.canAdd !== true) {
+			if (user.canRequest !== true) {
 				throw new Error();
 			}
 			// if request is new or approved check if the requester is the deleter
@@ -209,7 +213,7 @@ router.patch('/:id/delete', auth(), async ({ params }, res) => {
 });
 
 // Executing request
-router.patch('/execute', auth({ canAdd: true }), async ({ body, user }, res) => {
+router.patch('/execute', auth({ canAddLc: true }), async ({ body, user }, res) => {
 	let extension;
 	let amendment;
 	let lc;

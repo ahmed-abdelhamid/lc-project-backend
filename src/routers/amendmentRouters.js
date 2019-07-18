@@ -49,9 +49,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 		if (!contract) {
 			throw new Error();
 		}
-		await contract
-			.populate({ path: 'lcs', populate: { path: 'amendments' } })
-			.execPopulate();
+		await contract.populate({ path: 'lcs', populate: { path: 'amendments' } }).execPopulate();
 		const amendments = [];
 		for (let doc of contract.lcs) {
 			amendments.push(...doc.amendments);
@@ -90,7 +88,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 });
 
 // Edit amendment data
-router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+router.patch('', auth({ canAddLc: true }), async ({ body }, res) => {
 	const updates = {};
 	const allowedUpdates = ['amount', 'notes'];
 	allowedUpdates.map(update => (updates[update] = body[update]));

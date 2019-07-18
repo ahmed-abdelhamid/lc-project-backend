@@ -96,7 +96,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 });
 
 // Edit payment data in case of cash only
-router.patch('', auth({ canAdd: true }), async ({ body }, res) => {
+router.patch('', auth({ canAddCashPayment: true }), async ({ body }, res) => {
 	const allowedUpdates = ['amount', 'notes'];
 	try {
 		const payment = await Payment.findById(body._id);
