@@ -30,7 +30,7 @@ router.post(
 	upload.single('supplierDoc'),
 	async (req, res) => {
 		const supplier = await Supplier.findById(req.params.id);
-		supplier.supplierDoc = req.file.buffer;
+		supplier.files = req.file.buffer;
 		await supplier.save();
 		res.send();
 	},

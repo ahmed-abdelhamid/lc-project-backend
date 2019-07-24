@@ -18,7 +18,7 @@ const supplierSchema = new mongoose.Schema(
 			required: true,
 			ref: 'User',
 		},
-		supplierDoc: { type: Buffer },
+		files: { type: Buffer },
 	},
 	{ timestamps: true },
 );
