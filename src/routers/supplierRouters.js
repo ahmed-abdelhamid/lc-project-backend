@@ -20,14 +20,14 @@ router.post(
 
 	upload.array('docs'),
 	async ({ user, body, files }, res) => {
-		const filesNames = await uploadFiles(files);
-
-		const supplier = new Supplier({
-			...body,
-			createdBy: user._id,
-			docs: filesNames
-		});
 		try {
+			const filesNames = await uploadFiles(files);
+
+			const supplier = new Supplier({
+				...body,
+				createdBy: user._id,
+				docs: filesNames,
+			});
 			await supplier.save();
 			res.status(201).send(supplier);
 		} catch (e) {
@@ -37,7 +37,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Read all suppliers
@@ -84,9 +84,7 @@ router.get('appendix/:id', auth(), async ({ params }, res) => {
 		if (!appendix) {
 			return res.status(404).send();
 		}
-		await appendix
-			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-			.execPopulate();
+		await appendix.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 		res.send(appendix.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -117,7 +115,7 @@ router.get('request/:id', auth(), async ({ params }, res) => {
 		await request
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(request.lcId.contarctId.supplierId);
@@ -137,14 +135,12 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 			await paymentRequest
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+					populate: { path: 'contractId', populate: { path: 'supplierId' } },
 				})
 				.execPopulate();
 			res.send(paymentRequest.lcId.contarctId.supplierId);
 		} else {
-			await paymentRequest
-				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-				.execPopulate();
+			await paymentRequest.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(paymentRequest.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -163,14 +159,12 @@ router.get('payment/:id', auth(), async ({ params }, res) => {
 			await payment
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+					populate: { path: 'contractId', populate: { path: 'supplierId' } },
 				})
 				.execPopulate();
 			res.send(payment.lcId.contarctId.supplierId);
 		} else {
-			await payment
-				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-				.execPopulate();
+			await payment.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(payment.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -188,7 +182,7 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 		await extension
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(extension.lcId.contarctId.supplierId);
@@ -207,7 +201,7 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 		await amendment
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(amendment.lcId.contractId.supplierId);
@@ -217,34 +211,29 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 });
 
 // Update supplier data
-router.patch(
-	'',
-	auth({ canRegister: true }),
-	upload.array('docs'),
-	async ({ body, files }, res) => {
-		try {
-			const supplier = await Supplier.findById(body._id);
-			if (!supplier) {
-				throw new Error();
-			}
-
-			supplier.name = body.name;
-			supplier.specialization = body.specialization;
-			supplier.notes = body.notes;
-			supplier.vatRegisteration = body.vatRegisteration;
-			supplier.crRegisteration = body.crRegisteration;
-			supplier.state = body.state;
-			if (files.length > 0) {
-				const filesNames = await uploadFiles(files);
-				supplier.docs = supplier.docs.concat(filesNames);
-			}
-			await supplier.save();
-			res.send(supplier);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('', auth({ canRegister: true }), upload.array('docs'), async ({ body, files }, res) => {
+	try {
+		const supplier = await Supplier.findById(body._id);
+		if (!supplier) {
+			throw new Error();
 		}
+
+		supplier.name = body.name;
+		supplier.specialization = body.specialization;
+		supplier.notes = body.notes;
+		supplier.vatRegisteration = body.vatRegisteration;
+		supplier.crRegisteration = body.crRegisteration;
+		supplier.state = body.state;
+		if (files.length > 0) {
+			const filesNames = await uploadFiles(files);
+			supplier.docs = supplier.docs.concat(filesNames);
+		}
+		await supplier.save();
+		res.send(supplier);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Delete a file from Supplier
 router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
