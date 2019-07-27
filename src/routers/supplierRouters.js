@@ -17,6 +17,7 @@ const router = new express.Router();
 router.post(
 	'',
 	auth({ canRegister: true }),
+
 	upload.array('docs'),
 	async ({ user, body, files }, res) => {
 		const filesNames = await uploadFiles(files);
