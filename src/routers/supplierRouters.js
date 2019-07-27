@@ -1,6 +1,4 @@
 const express = require('express');
-const multer = require('multer');
-// const fileType = require('file-type');
 const Supplier = require('../models/supplierModel');
 const Contract = require('../models/contractModel');
 const Appendix = require('../models/appendixModel');
@@ -11,44 +9,39 @@ const Payment = require('../models/paymentModel');
 const Extension = require('../models/extensionModel');
 const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
+const {
+	uploadFiles,
+	deleteFile,
+	readMultiFiles
+} = require('../utils/filesFunctions');
 const router = new express.Router();
 
-const upload = multer({
-	limits: { fileSize: 2000000 },
-	fileFilter(req, file, cb) {
-		if (file.mimetype !== 'application/pdf') {
-			cb(new Error('All files should be in PDF format'));
-		}
-		cb(undefined, true);
-	},
-});
-
-// Upload documents
-router.post(
-	'/:id/upload',
-	auth({ canRegister: true }),
-	upload.single('supplierDoc'),
-	async (req, res) => {
-		const supplier = await Supplier.findById(req.params.id);
-		supplier.supplierDoc = req.file.buffer;
-		await supplier.save();
-		res.send();
-	},
-	(error, req, res) => {
-		res.status(400).send({ error: error.message });
-	},
-);
-
 // Create new supplier
-router.post('', auth({ canRegister: true }), async ({ user, body }, res) => {
-	const supplier = new Supplier({ ...body, createdBy: user._id });
-	try {
-		await supplier.save();
-		res.status(201).send(supplier);
-	} catch (e) {
-		res.status(400).send(e);
+router.post(
+	'',
+	auth({ canRegister: true }),
+	upload.array('docs'),
+	async ({ user, body, files }, res) => {
+		const filesNames = await uploadFiles(files);
+
+		const supplier = new Supplier({
+			...body,
+			createdBy: user._id,
+			docs: filesNames
+		});
+		try {
+			await supplier.save();
+			res.status(201).send(supplier);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
 	}
-});
+);
 
 // Read all suppliers
 router.get('', auth(), async (req, res) => {
@@ -86,6 +79,7 @@ router.get('contract/:id', auth(), async ({ params }, res) => {
 		res.status(500).send();
 	}
 });
+
 // Read supplier for appendix
 router.get('appendix/:id', auth(), async ({ params }, res) => {
 	try {
@@ -93,7 +87,9 @@ router.get('appendix/:id', auth(), async ({ params }, res) => {
 		if (!appendix) {
 			return res.status(404).send();
 		}
-		await appendix.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+		await appendix
+			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+			.execPopulate();
 		res.send(appendix.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -107,12 +103,15 @@ router.get('lc/:id', auth(), async ({ params }, res) => {
 		if (!lc) {
 			return res.status(404).send();
 		}
-		await lc.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+		await lc
+			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+			.execPopulate();
 		res.send(lc.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
+
 // Read supplier for request
 router.get('request/:id', auth(), async ({ params }, res) => {
 	try {
@@ -120,12 +119,18 @@ router.get('request/:id', auth(), async ({ params }, res) => {
 		if (!request) {
 			return res.status(404).send();
 		}
-		await request.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
+		await request
+			.populate({
+				path: 'lcId',
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+			})
+			.execPopulate();
 		res.send(request.lcId.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
+
 // Read supplier for paymentRequest
 router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 	try {
@@ -134,10 +139,17 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 			return res.status(404).send();
 		}
 		if (paymentRequest.lcId) {
-			await request.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
+			await paymentRequest
+				.populate({
+					path: 'lcId',
+					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				})
+				.execPopulate();
 			res.send(paymentRequest.lcId.contarctId.supplierId);
 		} else {
-			await request.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+			await paymentRequest
+				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+				.execPopulate();
 			res.send(paymentRequest.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -149,14 +161,21 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 router.get('payment/:id', auth(), async ({ params }, res) => {
 	try {
 		const payment = await Payment.findById(params.id);
-		if (!request) {
+		if (!payment) {
 			return res.status(404).send();
 		}
 		if (payment.lcId) {
-			await payment.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
+			await payment
+				.populate({
+					path: 'lcId',
+					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				})
+				.execPopulate();
 			res.send(payment.lcId.contarctId.supplierId);
 		} else {
-			await payment.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+			await payment
+				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+				.execPopulate();
 			res.send(payment.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -171,12 +190,18 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 		if (!extension) {
 			return res.status(404).send();
 		}
-		await extension.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
-		res.send(supplier);
+		await extension
+			.populate({
+				path: 'lcId',
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+			})
+			.execPopulate();
+		res.send(extension.lcId.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
+
 // Read supplier for amendment
 router.get('amendment/:id', auth(), async ({ params }, res) => {
 	try {
@@ -184,64 +209,78 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 		if (!amendment) {
 			return res.status(404).send();
 		}
-		await amendment.populate({ path: 'lcId', populate: { path: 'contractId', populate: { path: 'supplierId' } } }).execPopulate();
-		res.send(supplier);
+		await amendment
+			.populate({
+				path: 'lcId',
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+			})
+			.execPopulate();
+		res.send(amendment.lcId.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
 	}
 });
 
 // Update supplier data
-router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
-	const updates = {};
-	const allowedUpdates = ['name', 'specialization', 'notes', 'vatRegisteration', 'crRegisteration', 'state'];
-	allowedUpdates.map(update => (updates[update] = body[update]));
+router.patch(
+	'',
+	auth({ canRegister: true }),
+	upload.array('docs'),
+	async ({ body, files }, res) => {
+		try {
+			const supplier = await Supplier.findById(body._id);
+			if (!supplier) {
+				throw new Error();
+			}
+
+			supplier.name = body.name;
+			supplier.specialization = body.specialization;
+			supplier.notes = body.notes;
+			supplier.vatRegisteration = body.vatRegisteration;
+			supplier.crRegisteration = body.crRegisteration;
+			supplier.state = body.state;
+			if (files.length > 0) {
+				const filesNames = await uploadFiles(files);
+				supplier.docs = supplier.docs.concat(filesNames);
+			}
+			await supplier.save();
+			res.send(supplier);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	}
+);
+
+// Delete a file from Supplier
+router.delete('/:id/:key', auth(), async ({ params }, res) => {
 	try {
-		const supplier = await Supplier.findByIdAndUpdate(body._id, updates, {
-			new: true,
-			runValidators: true,
-		});
+		const supplier = await Supplier.findById(params.id);
 		if (!supplier) {
 			throw new Error();
 		}
+		await deleteFile(params.key);
+		supplier.docs = supplier.docs.filter(doc => doc !== params.key);
+
+		await supplier.save();
 		res.send(supplier);
 	} catch (e) {
-		res.status(400).send(e);
+		res.status(404).send();
 	}
 });
 
-// router.patch(
-// 	'/:id',
-// 	auth({ canRegister: true }),
-// 	async ({ params, body }, res) => {
-// 		const updates = Object.keys(body);
-// 		const allowedUpdates = [
-// 			'name',
-// 			'specialization',
-// 			'notes',
-// 			'vatRegisteration',
-// 			'crRegisteration',
-// 			'state'
-// 		];
-// 		const isValidOperation = updates.every(update =>
-// 			allowedUpdates.includes(update)
-// 		);
-// 		if (!isValidOperation) {
-// 			return res.status(400).send({ error: 'Invalid Updates' });
-// 		}
-// 		try {
-// 			const supplier = await Supplier.findByIdAndUpdate(params.id, body, {
-// 				new: true,
-// 				runValidators: true
-// 			});
-// 			if (!supplier) {
-// 				throw new Error();
-// 			}
-// 			res.send(supplier);
-// 		} catch (e) {
-// 			res.status(400).send(e);
-// 		}
-// 	}
-// );
+// Read All Files for Supplier
+router.get('/:id/files', auth(), async ({ params }, res) => {
+	try {
+		const supplier = await Supplier.findById(params.id);
+		if (!supplier) {
+			throw new Error();
+		}
+		const zipFile = await readMultiFiles(supplier.docs);
+		res.set('Content-Type', 'application/zip');
+		res.send(zipFile);
+	} catch (e) {
+		res.status(404).send();
+	}
+});
 
 module.exports = router;
