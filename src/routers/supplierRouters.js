@@ -10,11 +10,7 @@ const Extension = require('../models/extensionModel');
 const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const {
-	uploadFiles,
-	deleteFile,
-	readMultiFiles
-} = require('../utils/filesFunctions');
+const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new supplier
@@ -103,9 +99,7 @@ router.get('lc/:id', auth(), async ({ params }, res) => {
 		if (!lc) {
 			return res.status(404).send();
 		}
-		await lc
-			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-			.execPopulate();
+		await lc.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 		res.send(lc.contarctId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -252,7 +246,7 @@ router.patch(
 );
 
 // Delete a file from Supplier
-router.delete('/:id/:key', auth(), async ({ params }, res) => {
+router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.id);
 		if (!supplier) {

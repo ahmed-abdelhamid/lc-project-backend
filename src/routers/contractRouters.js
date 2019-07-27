@@ -3,21 +3,35 @@ const Contract = require('../models/contractModel');
 // const User = require('../models/userModel');
 const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
+const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new contract
-router.post('', auth({ canRegister: true }), async ({ body, user }, res) => {
-	const contract = new Contract({
-		...body,
-		createdBy: user._id,
-	});
-	try {
-		await contract.save();
-		res.status(201).send(contract);
-	} catch (e) {
-		res.status(400).send(e);
+router.post(
+	'',
+	auth({ canRegister: true }),
+	upload.array('docs'),
+	async ({ body, user, files }, res) => {
+		const filesNams = await uploadFiles(files);
+
+		const contract = new Contract({
+			...body,
+			createdBy: user._id,
+			docs: filesNams
+		});
+		try {
+			await contract.save();
+			res.status(201).send(contract);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
 	}
-});
+);
 
 // Get contracts for specific supplier
 router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
@@ -83,13 +97,13 @@ router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
 		'supplierId',
 		'date',
 		'state',
-		'previouslyPaidInCash',
+		'previouslyPaidInCash'
 	];
 	allowedUpdates.map(update => (updates[update] = body[update]));
 	try {
 		const contract = await Contract.findByIdAndUpdate(body._id, updates, {
 			new: true,
-			runValidators: true,
+			runValidators: true
 		});
 		if (!contract) {
 			throw new Error();

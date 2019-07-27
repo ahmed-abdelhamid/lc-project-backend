@@ -29,30 +29,6 @@ supplierSchema.virtual('contracts', {
 	foreignField: 'supplierId'
 });
 
-// supplierSchema.virtual('requests', {
-// 	ref: 'Request',
-// 	localField: '_id',
-// 	foreignField: 'supplierId'
-// });
-
-// supplierSchema.virtual('lcs', {
-// 	ref: 'Lc',
-// 	localField: '_id',
-// 	foreignField: 'supplierId'
-// });
-
-// supplierSchema.virtual('paymentRequests', {
-// 	ref: 'PaymentRequest',
-// 	localField: '_id',
-// 	foreignField: 'supplierId'
-// });
-
-// supplierSchema.virtual('payments', {
-// 	ref: 'Payment',
-// 	localField: '_id',
-// 	foreignField: 'supplierId'
-// });
-
 const Supplier = mongoose.model('Supplier', supplierSchema);
 
 module.exports = Supplier;

@@ -12,54 +12,55 @@ const contractSchema = new mongoose.Schema(
 		state: {
 			type: String,
 			enum: ['active', 'archived', 'deleted'],
-			default: 'active',
+			default: 'active'
 		},
 		supplierId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'Supplier',
+			ref: 'Supplier'
 		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User',
+			ref: 'User'
 		},
 		previouslyPaidInCash: {
 			type: Number,
 			required: true,
-			default: 0,
+			default: 0
 		},
+		docs: [{ type: String, required: true }]
 	},
-	{ timestamps: true },
+	{ timestamps: true }
 );
 
 contractSchema.virtual('appendixes', {
 	ref: 'Appendix',
 	localField: '_id',
-	foreignField: 'contractId',
+	foreignField: 'contractId'
 });
 
 contractSchema.virtual('paymentRequests', {
 	ref: 'PaymentRequest',
 	localField: '_id',
-	foreignField: 'contractId',
+	foreignField: 'contractId'
 });
 
 contractSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'contractId',
+	foreignField: 'contractId'
 });
 
 contractSchema.virtual('lcs', {
 	ref: 'Lc',
 	localField: '_id',
-	foreignField: 'contractId',
+	foreignField: 'contractId'
 });
 contractSchema.virtual('requests', {
 	ref: 'Request',
 	localField: '_id',
-	foreignField: 'contractId',
+	foreignField: 'contractId'
 });
 
 contractSchema.pre('save', async function(next) {
