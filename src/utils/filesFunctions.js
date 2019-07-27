@@ -5,12 +5,12 @@ const bucket = new AWS.S3({
 	apiVersion: '2006-03-01',
 	accessKeyId: process.env.AWS_ACCESS_KEY_ID,
 	secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-	region: process.env.AWS_REGION,
+	region: process.env.AWS_REGION
 });
 
 // Upload New Files
 const uploadFiles = async files => {
-	const filesNames = [];
+	let filesNames = [];
 
 	await Promise.all(
 		files.map(async file => {
@@ -24,20 +24,19 @@ const uploadFiles = async files => {
 				Bucket: process.env.AWS_BUCKET_NAME,
 				Key: newName,
 				Body: file.buffer,
-				ContentType: file.mimetype,
+				ContentType: file.mimetype
 			};
 
 			// Upload File to S3 Bucket
 			try {
-				const response = await bucket.putObject(params).promise();
-				console.log(response);
+				await bucket.putObject(params).promise();
 				filesNames.push(params.Key);
 			} catch (e) {
 				throw e;
 			}
-		}),
+		})
 	);
-
+	if (filesNames.length === 0) filesNames = undefined;
 	return filesNames;
 };
 
@@ -45,7 +44,7 @@ const uploadFiles = async files => {
 const getFile = async key => {
 	const params = {
 		Bucket: process.env.AWS_BUCKET_NAME,
-		Key: key,
+		Key: key
 	};
 
 	try {
@@ -64,7 +63,7 @@ const readMultiFiles = async keys => {
 		keys.map(async key => {
 			const file = await getFile(key);
 			zip.addFile(key, file.Body);
-		}),
+		})
 	);
 
 	return zip.toBuffer();
@@ -74,7 +73,7 @@ const readMultiFiles = async keys => {
 const deleteFile = async key => {
 	const params = {
 		Bucket: process.env.AWS_BUCKET_NAME,
-		Key: key,
+		Key: key
 	};
 
 	try {

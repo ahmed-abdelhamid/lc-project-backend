@@ -13,14 +13,13 @@ router.post(
 	auth({ canRegister: true }),
 	upload.array('docs'),
 	async ({ body, user, files }, res) => {
-		const filesNams = await uploadFiles(files);
-
-		const contract = new Contract({
-			...body,
-			createdBy: user._id,
-			docs: filesNams
-		});
 		try {
+			const filesNames = await uploadFiles(files);
+			const contract = new Contract({
+				...body,
+				createdBy: user._id,
+				docs: filesNames
+			});
 			await contract.save();
 			res.status(201).send(contract);
 		} catch (e) {
@@ -71,46 +70,72 @@ router.get('/:id', auth(), async ({ params }, res) => {
 	}
 });
 
-// Get contracts created by specific user
-// router.get('/users/:userId/contracts', auth(), async ({ params }, res) => {
-// 	try {
-// 		const user = await User.findById(params.userId);
-// 		if (!user) {
-// 			throw new Error();
-// 		}
-// 		await user.populate('contracts').execPopulate();
-// 		res.send(user.contracts);
-// 	} catch (e) {
-// 		res.status(404).send();
-// 	}
-// });
-
 // Update contract
-router.patch('', auth({ canRegister: true }), async ({ body }, res) => {
-	const updates = {};
-	const allowedUpdates = [
-		'title',
-		'soc',
-		'duration',
-		'amount',
-		'notes',
-		'supplierId',
-		'date',
-		'state',
-		'previouslyPaidInCash'
-	];
-	allowedUpdates.map(update => (updates[update] = body[update]));
+router.patch(
+	'',
+	auth({ canRegister: true }),
+	upload.array('docs'),
+	async ({ body, files }, res) => {
+		try {
+			const contract = await Contract.findById(body._id);
+			if (!contract) {
+				throw new Error();
+			}
+
+			contract.title = body.title;
+			contract.soc = body.soc;
+			contract.duration = body.duration;
+			contract.amount = body.amount;
+			contract.notes = body.notes;
+			contract.supplierId = body.supplierId;
+			contract.date = body.date;
+			contract.state = body.state;
+			contract.previouslyPaidInCash = body.previouslyPaidInCash;
+			if (files.length > 0) {
+				const filesNames = await uploadFiles(files);
+				contract.docs = contract.docs.concat(filesNames);
+			}
+			await contract.save();
+			res.send(contract);
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
+	}
+);
+
+// Delete a file from contract
+router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
 	try {
-		const contract = await Contract.findByIdAndUpdate(body._id, updates, {
-			new: true,
-			runValidators: true
-		});
+		const contract = await Contract.findById(params.id);
 		if (!contract) {
 			throw new Error();
 		}
+		await deleteFile(params.key);
+		contract.docs = contract.docs.filter(doc => doc !== params.key);
+
+		await contract.save();
 		res.send(contract);
 	} catch (e) {
-		res.status(400).send(e);
+		res.status(404).send();
+	}
+});
+
+// Read All Files for Contract
+router.get('/:id/files', auth(), async ({ params }, res) => {
+	try {
+		const contract = await Contract.findById(params.id);
+		if (!contract) {
+			throw new Error();
+		}
+		const zipFile = await readMultiFiles(contract.docs);
+		res.set('Content-Type', 'application/zip');
+		res.send(zipFile);
+	} catch (e) {
+		res.status(404).send();
 	}
 });
 

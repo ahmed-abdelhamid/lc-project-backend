@@ -18,7 +18,7 @@ const supplierSchema = new mongoose.Schema(
 			required: true,
 			ref: 'User'
 		},
-		docs: [{ type: String, required: true }]
+		docs: { type: [String], required: true, default: undefined }
 	},
 	{ timestamps: true }
 );

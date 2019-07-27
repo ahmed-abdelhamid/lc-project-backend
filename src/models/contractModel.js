@@ -29,7 +29,7 @@ const contractSchema = new mongoose.Schema(
 			required: true,
 			default: 0
 		},
-		docs: [{ type: String, required: true }]
+		docs: { type: [String], required: true, default: undefined }
 	},
 	{ timestamps: true }
 );

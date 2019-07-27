@@ -22,11 +22,10 @@ router.post(
 	async ({ user, body, files }, res) => {
 		try {
 			const filesNames = await uploadFiles(files);
-
 			const supplier = new Supplier({
 				...body,
 				createdBy: user._id,
-				docs: filesNames,
+				docs: filesNames
 			});
 			await supplier.save();
 			res.status(201).send(supplier);
@@ -37,7 +36,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	},
+	}
 );
 
 // Read all suppliers
@@ -64,7 +63,7 @@ router.get('/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for contract
-router.get('contract/:id', auth(), async ({ params }, res) => {
+router.get('/contract/:id', auth(), async ({ params }, res) => {
 	try {
 		const contract = await Contract.findById(params.id);
 		if (!contract) {
@@ -78,13 +77,15 @@ router.get('contract/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for appendix
-router.get('appendix/:id', auth(), async ({ params }, res) => {
+router.get('/appendix/:id', auth(), async ({ params }, res) => {
 	try {
 		const appendix = await Appendix.findById(params.id);
 		if (!appendix) {
 			return res.status(404).send();
 		}
-		await appendix.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+		await appendix
+			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+			.execPopulate();
 		res.send(appendix.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -92,7 +93,7 @@ router.get('appendix/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for lc
-router.get('lc/:id', auth(), async ({ params }, res) => {
+router.get('/lc/:id', auth(), async ({ params }, res) => {
 	try {
 		const lc = await Lc.findById(params.id);
 		if (!lc) {
@@ -106,7 +107,7 @@ router.get('lc/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for request
-router.get('request/:id', auth(), async ({ params }, res) => {
+router.get('/request/:id', auth(), async ({ params }, res) => {
 	try {
 		const request = await Request.findById(params.id);
 		if (!request) {
@@ -115,7 +116,7 @@ router.get('request/:id', auth(), async ({ params }, res) => {
 		await request
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } },
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
 			})
 			.execPopulate();
 		res.send(request.lcId.contarctId.supplierId);
@@ -125,7 +126,7 @@ router.get('request/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for paymentRequest
-router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
+router.get('/paymentRequest/:id', auth(), async ({ params }, res) => {
 	try {
 		const paymentRequest = await PaymentRequest.findById(params.id);
 		if (!paymentRequest) {
@@ -135,12 +136,14 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 			await paymentRequest
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } },
+					populate: { path: 'contractId', populate: { path: 'supplierId' } }
 				})
 				.execPopulate();
 			res.send(paymentRequest.lcId.contarctId.supplierId);
 		} else {
-			await paymentRequest.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+			await paymentRequest
+				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+				.execPopulate();
 			res.send(paymentRequest.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -149,7 +152,7 @@ router.get('paymentRequest/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for payment
-router.get('payment/:id', auth(), async ({ params }, res) => {
+router.get('/payment/:id', auth(), async ({ params }, res) => {
 	try {
 		const payment = await Payment.findById(params.id);
 		if (!payment) {
@@ -159,12 +162,14 @@ router.get('payment/:id', auth(), async ({ params }, res) => {
 			await payment
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } },
+					populate: { path: 'contractId', populate: { path: 'supplierId' } }
 				})
 				.execPopulate();
 			res.send(payment.lcId.contarctId.supplierId);
 		} else {
-			await payment.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
+			await payment
+				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
+				.execPopulate();
 			res.send(payment.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -173,7 +178,7 @@ router.get('payment/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for extension
-router.get('extension/:id', auth(), async ({ params }, res) => {
+router.get('/extension/:id', auth(), async ({ params }, res) => {
 	try {
 		const extension = await Extension.findById(params.id);
 		if (!extension) {
@@ -182,7 +187,7 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 		await extension
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } },
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
 			})
 			.execPopulate();
 		res.send(extension.lcId.contarctId.supplierId);
@@ -192,7 +197,7 @@ router.get('extension/:id', auth(), async ({ params }, res) => {
 });
 
 // Read supplier for amendment
-router.get('amendment/:id', auth(), async ({ params }, res) => {
+router.get('/amendment/:id', auth(), async ({ params }, res) => {
 	try {
 		const amendment = await Amendment.findById(params.id);
 		if (!amendment) {
@@ -201,7 +206,7 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 		await amendment
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } },
+				populate: { path: 'contractId', populate: { path: 'supplierId' } }
 			})
 			.execPopulate();
 		res.send(amendment.lcId.contractId.supplierId);
@@ -211,29 +216,38 @@ router.get('amendment/:id', auth(), async ({ params }, res) => {
 });
 
 // Update supplier data
-router.patch('', auth({ canRegister: true }), upload.array('docs'), async ({ body, files }, res) => {
-	try {
-		const supplier = await Supplier.findById(body._id);
-		if (!supplier) {
-			throw new Error();
-		}
+router.patch(
+	'',
+	auth({ canRegister: true }),
+	upload.array('docs'),
+	async ({ body, files }, res) => {
+		try {
+			const supplier = await Supplier.findById(body._id);
+			if (!supplier) {
+				throw new Error();
+			}
 
-		supplier.name = body.name;
-		supplier.specialization = body.specialization;
-		supplier.notes = body.notes;
-		supplier.vatRegisteration = body.vatRegisteration;
-		supplier.crRegisteration = body.crRegisteration;
-		supplier.state = body.state;
-		if (files.length > 0) {
-			const filesNames = await uploadFiles(files);
-			supplier.docs = supplier.docs.concat(filesNames);
+			supplier.name = body.name;
+			supplier.specialization = body.specialization;
+			supplier.notes = body.notes;
+			supplier.vatRegisteration = body.vatRegisteration;
+			supplier.crRegisteration = body.crRegisteration;
+			supplier.state = body.state;
+			if (files.length > 0) {
+				const filesNames = await uploadFiles(files);
+				supplier.docs = supplier.docs.concat(filesNames);
+			}
+			await supplier.save();
+			res.send(supplier);
+		} catch (e) {
+			res.status(400).send(e);
 		}
-		await supplier.save();
-		res.send(supplier);
-	} catch (e) {
-		res.status(400).send(e);
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
 	}
-});
+);
 
 // Delete a file from Supplier
 router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
