@@ -1,6 +1,5 @@
 const express = require('express');
 const Contract = require('../models/contractModel');
-// const User = require('../models/userModel');
 const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');

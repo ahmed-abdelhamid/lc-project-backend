@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Contract = require('./contractModel');
 
-// Exact as CONTRACT
 const appendixSchema = new mongoose.Schema(
 	{
 		title: { type: String, required: true, trim: true },
@@ -24,7 +23,8 @@ const appendixSchema = new mongoose.Schema(
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
 			required: true
-		}
+		},
+		docs: { type: [String], required: true, default: undefined }
 	},
 	{ timestamps: true }
 );
