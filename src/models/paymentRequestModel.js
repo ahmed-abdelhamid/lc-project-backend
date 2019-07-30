@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Supplier = require('./supplierModel');
 const Contract = require('./contractModel');
 const Lc = require('./lcModel');
 
@@ -7,33 +6,34 @@ const paymentRequestSchema = new mongoose.Schema(
 	{
 		contractId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Contract',
+			ref: 'Contract'
 		},
 		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc',
+			ref: 'Lc'
 		},
 		amount: { type: Number, required: true },
 		state: {
 			type: String,
 			enum: ['new', 'approved', 'inprogress', 'executed', 'canceled'],
 			default: 'new',
-			required: true,
+			required: true
 		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User',
+			ref: 'User'
 		},
 		notes: { type: String, trim: true },
+		docs: { type: [String], required: true, default: undefined }
 	},
-	{ timestamps: true },
+	{ timestamps: true }
 );
 
 paymentRequestSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'requestId',
+	foreignField: 'requestId'
 });
 
 paymentRequestSchema.pre('save', async function(next) {
@@ -58,6 +58,10 @@ paymentRequestSchema.post('find', async function(docs) {
 	for (let doc of docs) {
 		await doc.populate('createdBy', 'name').execPopulate();
 	}
+});
+
+paymentRequestSchema.post('findOne', async function(doc) {
+	await doc.populate('createdBy', 'name').execPopulate();
 });
 
 const PaymentRequest = new mongoose.model('PaymentRequest', paymentRequestSchema);

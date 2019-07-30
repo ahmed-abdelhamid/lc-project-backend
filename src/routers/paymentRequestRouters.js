@@ -5,22 +5,35 @@ const Contract = require('../models/contractModel');
 const Supplier = require('../models/supplierModel');
 const Lc = require('../models/lcModel');
 const auth = require('../middleware/auth');
+const upload = require('../middleware/upload');
+const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new payment request
-router.post('', auth({ canRequest: true }), async ({ body, user }, res) => {
-	const paymentRequest = new PaymentRequest({
-		...body,
-		createdBy: user._id,
-	});
-	try {
-		await paymentRequest.save();
-		await paymentRequest.populate('createdBy', 'name').execPopulate();
-		res.status(201).send(paymentRequest);
-	} catch (e) {
-		res.status(400).send(e);
+router.post(
+	'',
+	auth({ canRequest: true }),
+	upload.array('docs'),
+	async ({ body, user, files }, res) => {
+		try {
+			const filesNames = await uploadFiles(files);
+			const paymentRequest = new PaymentRequest({
+				...body,
+				createdBy: user._id,
+				docs: filesNames
+			});
+			await paymentRequest.save();
+			await paymentRequest.populate('createdBy', 'name').execPopulate();
+			res.status(201).send(paymentRequest);
+		} catch (e) {
+			res.status(400).send(e.message);
+		}
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
 	}
-});
+);
 
 // Get payment requests for specific supplier
 router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
@@ -29,7 +42,9 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		if (!supplier) {
 			throw new Error();
 		}
-		await supplier.populate({ path: 'contracts', populate: { path: 'paymentRequests' } }).execPopulate();
+		await supplier
+			.populate({ path: 'contracts', populate: { path: 'paymentRequests' } })
+			.execPopulate();
 		const cash = [];
 		for (let doc of supplier.contracts) {
 			cash.push(...doc.paymentRequests);
@@ -37,7 +52,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		await supplier
 			.populate({
 				path: 'contracts',
-				populate: { path: 'lcs', populate: { path: 'paymentRequests' } },
+				populate: { path: 'lcs', populate: { path: 'paymentRequests' } }
 			})
 			.execPopulate();
 		const lcs = [];
@@ -53,6 +68,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		res.status(404).send();
 	}
 });
+
 // Get payment requests for specific contract
 router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 	try {
@@ -70,12 +86,13 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 		}
 		res.send({
 			cash: cash,
-			lc: lc,
+			lc: lc
 		});
 	} catch (e) {
 		res.status(404).send();
 	}
 });
+
 // Get payment requests for specific lc
 router.get('/lc/:lcId', auth(), async ({ params }, res) => {
 	try {
@@ -114,27 +131,41 @@ router.get('/:id', auth(), async ({ params }, res) => {
 });
 
 // Modify payment request only if still new or approved
-router.patch('', auth({ canRequest: true }), async ({ body, user }, res) => {
-	const allowedUpdates = ['amount', 'notes'];
-	try {
-		const paymentRequest = await PaymentRequest.findById(body._id);
-		if (
-			!paymentRequest ||
-			paymentRequest.state === 'approved' ||
-			paymentRequest.state === 'inprogress' ||
-			user._id.toString() !== paymentRequest.createdBy.toString()
-		) {
-			throw new Error();
+router.patch(
+	'',
+	auth({ canRequest: true }),
+	upload.array('docs'),
+	async ({ body, user, files }, res) => {
+		try {
+			const paymentRequest = await PaymentRequest.findById(body._id);
+			if (
+				!paymentRequest ||
+				paymentRequest.state === 'inprogress' ||
+				paymentRequest.state === 'executed' ||
+				paymentRequest.state === 'canceled' ||
+				user._id.toString() !== paymentRequest.createdBy._id.toString()
+			) {
+				throw new Error();
+			}
+			paymentRequest.state = 'new';
+			paymentRequest.amount = body.amount;
+			paymentRequest.notes = body.notes;
+			if (files.length > 0) {
+				const filesNames = await uploadFiles(files);
+				paymentRequest.docs = paymentRequest.docs.concat(filesNames);
+			}
+			await paymentRequest.save();
+			await paymentRequest.populate('createdBy', 'name').execPopulate();
+			res.send(paymentRequest);
+		} catch (e) {
+			res.status(400).send(e);
 		}
-		allowedUpdates.forEach(update => (paymentRequest[update] = body[update]));
-		paymentRequest.state = 'new';
-		await paymentRequest.save();
-		await paymentRequest.populate('createdBy', 'name').execPopulate();
-		res.send(paymentRequest);
-	} catch (e) {
-		res.status(400).send(e);
+	},
+	// eslint-disable-next-line no-unused-vars
+	(error, req, res, next) => {
+		res.status(400).send({ error: error.message });
 	}
-});
+);
 
 // Approve request
 router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res) => {
@@ -153,29 +184,33 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 });
 
 // Inprogressing request
-router.patch('/:id/inprogress', auth({ canAddLc: true, canAddCashPayment: true }), async ({ params }, res) => {
-	try {
-		const paymentRequest = await PaymentRequest.findById(params.id);
-		if (!paymentRequest || paymentRequest.state !== 'approved') {
-			throw new Error();
+router.patch(
+	'/:id/inprogress',
+	auth({ canAddLc: true, canAddCashPayment: true }),
+	async ({ params }, res) => {
+		try {
+			const paymentRequest = await PaymentRequest.findById(params.id);
+			if (!paymentRequest || paymentRequest.state !== 'approved') {
+				throw new Error();
+			}
+			paymentRequest.state = 'inprogress';
+			await paymentRequest.save();
+			await paymentRequest.populate('createdBy', 'name').execPopulate();
+			res.send(paymentRequest);
+		} catch (e) {
+			res.status(400).send(e);
 		}
-		paymentRequest.state = 'inprogress';
-		await paymentRequest.save();
-		await paymentRequest.populate('createdBy', 'name').execPopulate();
-		res.send(paymentRequest);
-	} catch (e) {
-		res.status(400).send(e);
 	}
-});
+);
 
-// delete Request
+// Delete Request
 router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 	try {
 		const paymentRequest = await PaymentRequest.findById(params.id);
 		// check for request
 		if (!paymentRequest) {
 			throw new Error();
-			// check if executed or inprogress and the deleter canAdd = true
+			// check if executed or inprogress then the deleter canAdd = true
 		} else if (paymentRequest.state === 'executed' || paymentRequest.state === 'inprogress') {
 			if (user.canAddLc !== true) {
 				throw new Error();
@@ -184,7 +219,7 @@ router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 		} else if (user._id.toString() !== paymentRequest.createdBy._id.toString()) {
 			throw new Error();
 		}
-		paymentRequest.state = 'deleted';
+		paymentRequest.state = 'canceled';
 		await paymentRequest.save();
 		res.send(paymentRequest);
 	} catch (e) {
@@ -193,39 +228,76 @@ router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 });
 
 // Executing request
-router.patch('/execute', auth({ canAddLc: true }), async ({ body, user }, res) => {
-	let payment;
-	const { notes, amount } = body;
+router.patch(
+	'/execute',
+	auth({ canAddLc: true }),
+	upload.array('docs'),
+	async ({ body, user, files }, res) => {
+		let payment;
+		const { notes, amount } = body;
+		try {
+			const paymentRequest = await PaymentRequest.findById(body._id);
+			if (!paymentRequest || paymentRequest.state !== 'inprogress') {
+				throw new Error('here');
+			}
+			const filesNames = await uploadFiles(files);
+			payment = new Payment({
+				requestId: paymentRequest._id,
+				createdBy: user._id
+			});
+
+			if (paymentRequest.lcId) {
+				payment.lcId = paymentRequest.lcId;
+				payment.amount = paymentRequest.amount;
+				payment.notes = paymentRequest.notes;
+			} else {
+				payment.contractId = paymentRequest.contractId;
+				payment.amount = amount;
+				payment.notes = notes;
+				payment.docs = filesNames;
+			}
+
+			await payment.save();
+			await payment.populate('createdBy', 'name').execPopulate();
+			paymentRequest.state = 'executed';
+			await paymentRequest.save();
+			await paymentRequest.populate('createdBy', 'name').execPopulate();
+			res.status(201).send({ paymentRequest, payment });
+		} catch (e) {
+			res.status(400).send(e);
+		}
+	}
+);
+
+// Delete a file from Payment Request
+router.delete('/:id/:key', auth({ canRequest: true }), async ({ params }, res) => {
 	try {
-		const paymentRequest = await PaymentRequest.findById(body._id);
-		if (!paymentRequest || paymentRequest.state !== 'inprogress') {
-			throw new Error('here');
+		const paymentRequest = await PaymentRequest.findById(params.id);
+		if (!paymentRequest) {
+			throw new Error();
 		}
+		await deleteFile(params.key);
+		paymentRequest.docs = paymentRequest.docs.filter(doc => doc !== params.key);
 
-		payment = new Payment({
-			requestId: paymentRequest._id,
-			createdBy: user._id,
-			// dateOfRequest: paymentRequest.createdAt, ==> no need , we can get the request of payment date
-		});
-
-		if (paymentRequest.lcId) {
-			payment.lcId = paymentRequest.lcId;
-			payment.amount = paymentRequest.amount;
-			payment.notes = paymentRequest.notes;
-		} else {
-			payment.contractId = paymentRequest.contractId;
-			payment.amount = amount;
-			payment.notes = notes;
-		}
-
-		await payment.save();
-		await payment.populate('createdBy', 'name').execPopulate();
-		paymentRequest.state = 'executed';
 		await paymentRequest.save();
-		await paymentRequest.populate('createdBy', 'name').execPopulate();
-		res.status(201).send({ paymentRequest, payment });
+		res.send(paymentRequest);
 	} catch (e) {
-		res.status(400).send(e);
+		res.status(404).send();
+	}
+});
+
+// Read All Files for Payment Request
+router.get('/:id/files', auth(), async ({ params }, res) => {
+	try {
+		const paymentRequest = await PaymentRequest.findById(params.id);
+		if (!paymentRequest) {
+			throw new Error();
+		}
+		const zipFile = await readMultiFiles(paymentRequest.docs);
+		res.set('Content-Type', 'application/zip');
+		res.send(zipFile);
+	} catch (e) {
+		res.status(404).send();
 	}
 });
 
