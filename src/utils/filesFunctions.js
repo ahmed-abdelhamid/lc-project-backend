@@ -68,6 +68,14 @@ const readMultiFiles = async keys => {
 	);
 	return zip.toBuffer();
 };
+// Read Many Files
+const deleteMultiFiles = async keys => {
+	await Promise.all(
+		keys.map(async key => {
+			await deleteFile(key);
+		}),
+	);
+};
 
 // Delete File
 const deleteFile = async key => {
@@ -83,4 +91,4 @@ const deleteFile = async key => {
 	}
 };
 
-module.exports = { uploadFiles, getFile, deleteFile, readMultiFiles };
+module.exports = { uploadFiles, getFile, deleteMultiFiles, readMultiFiles };

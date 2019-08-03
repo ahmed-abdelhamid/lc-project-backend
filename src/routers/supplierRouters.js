@@ -10,7 +10,7 @@ const Extension = require('../models/extensionModel');
 const Amendment = require('../models/amendmentModel');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
+const { uploadFiles, deleteMultiFiles, readMultiFiles } = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new supplier
@@ -25,7 +25,7 @@ router.post(
 			const supplier = new Supplier({
 				...body,
 				createdBy: user._id,
-				docs: filesNames
+				docs: filesNames,
 			});
 			await supplier.save();
 			res.status(201).send(supplier);
@@ -36,7 +36,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Read all suppliers
@@ -83,9 +83,7 @@ router.get('/appendix/:id', auth(), async ({ params }, res) => {
 		if (!appendix) {
 			return res.status(404).send();
 		}
-		await appendix
-			.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-			.execPopulate();
+		await appendix.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 		res.send(appendix.contractId.supplierId);
 	} catch (e) {
 		res.status(500).send();
@@ -116,7 +114,7 @@ router.get('/request/:id', auth(), async ({ params }, res) => {
 		await request
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(request.lcId.contarctId.supplierId);
@@ -136,14 +134,12 @@ router.get('/paymentRequest/:id', auth(), async ({ params }, res) => {
 			await paymentRequest
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+					populate: { path: 'contractId', populate: { path: 'supplierId' } },
 				})
 				.execPopulate();
 			res.send(paymentRequest.lcId.contarctId.supplierId);
 		} else {
-			await paymentRequest
-				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-				.execPopulate();
+			await paymentRequest.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(paymentRequest.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -162,14 +158,12 @@ router.get('/payment/:id', auth(), async ({ params }, res) => {
 			await payment
 				.populate({
 					path: 'lcId',
-					populate: { path: 'contractId', populate: { path: 'supplierId' } }
+					populate: { path: 'contractId', populate: { path: 'supplierId' } },
 				})
 				.execPopulate();
 			res.send(payment.lcId.contarctId.supplierId);
 		} else {
-			await payment
-				.populate({ path: 'contractId', populate: { path: 'supplierId' } })
-				.execPopulate();
+			await payment.populate({ path: 'contractId', populate: { path: 'supplierId' } }).execPopulate();
 			res.send(payment.contarctId.supplierId);
 		}
 	} catch (e) {
@@ -187,7 +181,7 @@ router.get('/extension/:id', auth(), async ({ params }, res) => {
 		await extension
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(extension.lcId.contarctId.supplierId);
@@ -206,7 +200,7 @@ router.get('/amendment/:id', auth(), async ({ params }, res) => {
 		await amendment
 			.populate({
 				path: 'lcId',
-				populate: { path: 'contractId', populate: { path: 'supplierId' } }
+				populate: { path: 'contractId', populate: { path: 'supplierId' } },
 			})
 			.execPopulate();
 		res.send(amendment.lcId.contractId.supplierId);
@@ -246,19 +240,18 @@ router.patch(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
-// Delete a file from Supplier
-router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
+// Delete multi files from Supplier
+router.patch('/:id', auth({ canRegister: true }), async ({ params, body }, res) => {
 	try {
 		const supplier = await Supplier.findById(params.id);
 		if (!supplier) {
 			throw new Error();
 		}
-		await deleteFile(params.key);
-		supplier.docs = supplier.docs.filter(doc => doc !== params.key);
-
+		await deleteMultiFiles(body.keys);
+		supplier.docs = supplier.docs.filter(doc => body.keys.indexOf(doc) === -1);
 		await supplier.save();
 		res.send(supplier);
 	} catch (e) {

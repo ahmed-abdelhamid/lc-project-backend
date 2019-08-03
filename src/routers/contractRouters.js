@@ -3,7 +3,7 @@ const Contract = require('../models/contractModel');
 const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
+const { uploadFiles, deleteMultiFiles, readMultiFiles } = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new contract
@@ -17,7 +17,7 @@ router.post(
 			const contract = new Contract({
 				...body,
 				createdBy: user._id,
-				docs: filesNames
+				docs: filesNames,
 			});
 			await contract.save();
 			res.status(201).send(contract);
@@ -28,7 +28,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Get contracts for specific supplier
@@ -103,18 +103,18 @@ router.patch(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Delete a file from contract
-router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
+router.patch('/:id', auth({ canRegister: true }), async ({ params, body }, res) => {
 	try {
 		const contract = await Contract.findById(params.id);
 		if (!contract) {
 			throw new Error();
 		}
-		await deleteFile(params.key);
-		contract.docs = contract.docs.filter(doc => doc !== params.key);
+		await deleteMultiFiles(body.keys);
+		contract.docs = contract.docs.filter(doc => body.keys.indexOf(doc) === -1);
 
 		await contract.save();
 		res.send(contract);
