@@ -12,21 +12,21 @@ const appendixSchema = new mongoose.Schema(
 		state: {
 			type: String,
 			enum: ['active', 'archived', 'deleted'],
-			default: 'active'
+			default: 'active',
 		},
 		contractId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Contract',
-			required: true
+			required: true,
 		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
-			required: true
+			required: true,
 		},
-		docs: { type: [String], required: true, default: undefined }
+		docs: { type: [String], required: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 appendixSchema.pre('save', async function(next) {

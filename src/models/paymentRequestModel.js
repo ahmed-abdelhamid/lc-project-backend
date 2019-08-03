@@ -6,34 +6,34 @@ const paymentRequestSchema = new mongoose.Schema(
 	{
 		contractId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Contract'
+			ref: 'Contract',
 		},
 		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc'
+			ref: 'Lc',
 		},
 		amount: { type: Number, required: true },
 		state: {
 			type: String,
 			enum: ['new', 'approved', 'inprogress', 'executed', 'canceled'],
 			default: 'new',
-			required: true
+			required: true,
 		},
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
 		notes: { type: String, trim: true },
-		docs: { type: [String], required: true, default: undefined }
+		docs: { type: [String] },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 paymentRequestSchema.virtual('payments', {
 	ref: 'Payment',
 	localField: '_id',
-	foreignField: 'requestId'
+	foreignField: 'requestId',
 });
 
 paymentRequestSchema.pre('save', async function(next) {
@@ -43,6 +43,9 @@ paymentRequestSchema.pre('save', async function(next) {
 		const lc = await Lc.findById(paymentRequest.lcId);
 		if (!lc) {
 			throw new Error('Lc not found');
+		}
+		if (!paymentRequest.docs) {
+			throw new Error('you should attach invoice copy!');
 		}
 	} else {
 		const contract = await Contract.findById(paymentRequest.contractId);

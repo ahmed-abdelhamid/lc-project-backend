@@ -15,12 +15,14 @@ router.post(
 	auth({ canRequest: true }),
 	upload.array('docs'),
 	async ({ body, user, files }, res) => {
+		console.log(files);
+
 		try {
 			const filesNames = await uploadFiles(files);
 			const paymentRequest = new PaymentRequest({
 				...body,
 				createdBy: user._id,
-				docs: filesNames
+				docs: filesNames,
 			});
 			await paymentRequest.save();
 			await paymentRequest.populate('createdBy', 'name').execPopulate();
@@ -32,7 +34,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Get payment requests for specific supplier
@@ -42,9 +44,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		if (!supplier) {
 			throw new Error();
 		}
-		await supplier
-			.populate({ path: 'contracts', populate: { path: 'paymentRequests' } })
-			.execPopulate();
+		await supplier.populate({ path: 'contracts', populate: { path: 'paymentRequests' } }).execPopulate();
 		const cash = [];
 		for (let doc of supplier.contracts) {
 			cash.push(...doc.paymentRequests);
@@ -52,7 +52,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		await supplier
 			.populate({
 				path: 'contracts',
-				populate: { path: 'lcs', populate: { path: 'paymentRequests' } }
+				populate: { path: 'lcs', populate: { path: 'paymentRequests' } },
 			})
 			.execPopulate();
 		const lcs = [];
@@ -86,7 +86,7 @@ router.get('/contract/:contractId', auth(), async ({ params }, res) => {
 		}
 		res.send({
 			cash: cash,
-			lc: lc
+			lc: lc,
 		});
 	} catch (e) {
 		res.status(404).send();
@@ -164,7 +164,7 @@ router.patch(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Approve request
@@ -184,24 +184,20 @@ router.patch('/:id/approve', auth({ canApprove: true }), async ({ params }, res)
 });
 
 // Inprogressing request
-router.patch(
-	'/:id/inprogress',
-	auth({ canAddLc: true, canAddCashPayment: true }),
-	async ({ params }, res) => {
-		try {
-			const paymentRequest = await PaymentRequest.findById(params.id);
-			if (!paymentRequest || paymentRequest.state !== 'approved') {
-				throw new Error();
-			}
-			paymentRequest.state = 'inprogress';
-			await paymentRequest.save();
-			await paymentRequest.populate('createdBy', 'name').execPopulate();
-			res.send(paymentRequest);
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('/:id/inprogress', auth({ canAddLc: true, canAddCashPayment: true }), async ({ params }, res) => {
+	try {
+		const paymentRequest = await PaymentRequest.findById(params.id);
+		if (!paymentRequest || paymentRequest.state !== 'approved') {
+			throw new Error();
 		}
+		paymentRequest.state = 'inprogress';
+		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
+		res.send(paymentRequest);
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Delete Request
 router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
@@ -228,46 +224,40 @@ router.patch('/:id/delete', auth(), async ({ params, user }, res) => {
 });
 
 // Executing request
-router.patch(
-	'/execute',
-	auth({ canAddLc: true }),
-	upload.array('docs'),
-	async ({ body, user, files }, res) => {
-		let payment;
-		const { notes, amount } = body;
-		try {
-			const paymentRequest = await PaymentRequest.findById(body._id);
-			if (!paymentRequest || paymentRequest.state !== 'inprogress') {
-				throw new Error('here');
-			}
-			const filesNames = await uploadFiles(files);
-			payment = new Payment({
-				requestId: paymentRequest._id,
-				createdBy: user._id
-			});
-
-			if (paymentRequest.lcId) {
-				payment.lcId = paymentRequest.lcId;
-				payment.amount = paymentRequest.amount;
-				payment.notes = paymentRequest.notes;
-			} else {
-				payment.contractId = paymentRequest.contractId;
-				payment.amount = amount;
-				payment.notes = notes;
-				payment.docs = filesNames;
-			}
-
-			await payment.save();
-			await payment.populate('createdBy', 'name').execPopulate();
-			paymentRequest.state = 'executed';
-			await paymentRequest.save();
-			await paymentRequest.populate('createdBy', 'name').execPopulate();
-			res.status(201).send({ paymentRequest, payment });
-		} catch (e) {
-			res.status(400).send(e);
+router.patch('/execute', auth({ canAddLc: true }), upload.array('docs'), async ({ body, user, files }, res) => {
+	let payment;
+	const { notes, amount } = body;
+	try {
+		const paymentRequest = await PaymentRequest.findById(body._id);
+		if (!paymentRequest || paymentRequest.state !== 'inprogress') {
+			throw new Error('here');
 		}
+		const filesNames = await uploadFiles(files);
+		payment = new Payment({
+			requestId: paymentRequest._id,
+			createdBy: user._id,
+		});
+		payment.docs = filesNames;
+		if (paymentRequest.lcId) {
+			payment.lcId = paymentRequest.lcId;
+			payment.amount = paymentRequest.amount;
+			payment.notes = paymentRequest.notes;
+		} else {
+			payment.contractId = paymentRequest.contractId;
+			payment.amount = amount;
+			payment.notes = notes;
+		}
+
+		await payment.save();
+		await payment.populate('createdBy', 'name').execPopulate();
+		paymentRequest.state = 'executed';
+		await paymentRequest.save();
+		await paymentRequest.populate('createdBy', 'name').execPopulate();
+		res.status(201).send({ paymentRequest, payment });
+	} catch (e) {
+		res.status(400).send(e);
 	}
-);
+});
 
 // Delete a file from Payment Request
 router.delete('/:id/:key', auth({ canRequest: true }), async ({ params }, res) => {

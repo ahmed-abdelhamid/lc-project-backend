@@ -6,26 +6,26 @@ const paymentSchema = new mongoose.Schema(
 		requestId: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'PaymentRequest'
+			ref: 'PaymentRequest',
 		},
 		contractId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Contract'
+			ref: 'Contract',
 		},
 		lcId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Lc'
+			ref: 'Lc',
 		},
 		amount: { type: Number, required: true },
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
 		notes: { type: String, trim: true },
-		docs: { type: [String], required: true, default: undefined }
+		docs: { type: [String], required: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 paymentSchema.pre('save', async function(next) {

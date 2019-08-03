@@ -8,7 +8,7 @@ const supplierSchema = new mongoose.Schema(
 			type: Number,
 			unique: true,
 			required: true,
-			trim: true
+			trim: true,
 		},
 		crRegisteration: { type: Number, unique: true, required: true, trim: true },
 		notes: { type: String, trim: true },
@@ -16,17 +16,17 @@ const supplierSchema = new mongoose.Schema(
 		createdBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			required: true,
-			ref: 'User'
+			ref: 'User',
 		},
-		docs: { type: [String], required: true, default: undefined }
+		docs: { type: [String], required: true },
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 supplierSchema.virtual('contracts', {
 	ref: 'Contract',
 	localField: '_id',
-	foreignField: 'supplierId'
+	foreignField: 'supplierId',
 });
 
 const Supplier = mongoose.model('Supplier', supplierSchema);
