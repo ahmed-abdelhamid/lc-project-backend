@@ -4,7 +4,11 @@ const Contract = require('../models/contractModel');
 const Supplier = require('../models/supplierModel');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
-const { uploadFiles, deleteFile, readMultiFiles } = require('../utils/filesFunctions');
+const {
+	uploadFiles,
+	deleteMultiFiles,
+	readMultiFiles,
+} = require('../utils/filesFunctions');
 const router = new express.Router();
 
 // Create new Appendix
@@ -18,7 +22,7 @@ router.post(
 			const appendix = new Appendix({
 				...body,
 				createdBy: user._id,
-				docs: filesNames
+				docs: filesNames,
 			});
 			await appendix.save();
 			res.status(201).send(appendix);
@@ -29,7 +33,7 @@ router.post(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Get appendixes for specific contracts
@@ -56,7 +60,7 @@ router.get('/supplier/:supplierId', auth(), async ({ params }, res) => {
 		await supplier
 			.populate({
 				path: 'contracts',
-				populate: { path: 'appendixes' }
+				populate: { path: 'appendixes' },
 			})
 			.execPopulate();
 		const appendixes = [];
@@ -125,25 +129,31 @@ router.patch(
 	// eslint-disable-next-line no-unused-vars
 	(error, req, res, next) => {
 		res.status(400).send({ error: error.message });
-	}
+	},
 );
 
 // Delete a file from appendix
-router.delete('/:id/:key', auth({ canRegister: true }), async ({ params }, res) => {
-	try {
-		const appendix = await Appendix.findById(params.id);
-		if (!appendix) {
-			throw new Error();
-		}
-		await deleteFile(params.key);
-		appendix.docs = appendix.docs.filter(doc => doc !== params.key);
+router.patch(
+	'/:id',
+	auth({ canRegister: true }),
+	async ({ params, body }, res) => {
+		try {
+			const appendix = await Appendix.findById(params.id);
+			if (!appendix) {
+				throw new Error();
+			}
+			await deleteMultiFiles(body.keys);
+			appendix.docs = appendix.docs.filter(
+				doc => body.keys.indexOf(doc) === -1,
+			);
 
-		await appendix.save();
-		res.send(appendix);
-	} catch (e) {
-		res.status(404).send();
-	}
-});
+			await appendix.save();
+			res.send(appendix);
+		} catch (e) {
+			res.status(404).send(e);
+		}
+	},
+);
 
 // Read All Files for Appendix
 router.get('/:id/files', auth(), async ({ params }, res) => {
